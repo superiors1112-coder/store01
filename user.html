@@ -9,10 +9,11 @@
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700;900&display=swap');
         body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .modal-bg { background-color: rgba(0, 0, 0, 0.5); }
+        .modal-bg { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
         .active-category { background-color: #16a34a !important; color: white !important; }
-        .product-img { object-fit: cover; width: 100%; height: 100%; transition: transform 0.3s ease; }
-        .group:hover .product-img { transform: scale(1.05); }
+        .product-img { object-fit: cover; width: 100%; height: 100%; transition: transform 0.4s ease; }
+        .group:hover .product-img { transform: scale(1.08); }
+        .option-selected { border-color: #16a34a !important; background-color: #f0fdf4; color: #16a34a; }
     </style>
 </head>
 <body class="pb-24">
@@ -26,10 +27,10 @@
         
         <div class="flex items-center gap-3">
             <div class="relative hidden md:block">
-                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="상품명을 검색하세요" class="bg-slate-100 border-none rounded-full px-4 py-2 text-xs w-64 focus:ring-2 focus:ring-green-500 transition-all outline-none">
+                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="상품명 또는 거래처 검색" class="bg-slate-100 border-none rounded-full px-4 py-2 text-xs w-64 focus:ring-2 focus:ring-green-500 transition-all outline-none">
             </div>
-            <button class="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors">로그인</button>
-            <button onclick="openModal()" class="text-xs font-black bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-slate-700 transition-all shadow-md">회원가입</button>
+            <button class="text-xs font-bold text-slate-500">로그인</button>
+            <button onclick="openSignupModal()" class="text-xs font-black bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-slate-700 transition-all shadow-md">회원가입</button>
         </div>
     </nav>
 
@@ -42,10 +43,10 @@
                 <div class="relative z-10">
                     <span class="bg-white/20 backdrop-blur-sm text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block border border-white/20">Real-time Inventory</span>
                     <h2 class="text-3xl md:text-4xl font-black leading-tight mb-4">
-                        모티스 & 그린컴퍼니<br>
-                        산지 직송 상품 업데이트
+                        산지 직송 상품<br>
+                        옵션별 실시간 단가 적용
                     </h2>
-                    <p class="text-white/80 text-sm font-medium mb-6">스프레드시트 기반 실시간 상품 정보 확인 가능</p>
+                    <p class="text-white/80 text-sm font-medium mb-6">시트 데이터 기반 20% 마진이 적용된 공급가입니다.</p>
                 </div>
                 <div class="absolute -right-10 -bottom-10 text-[180px] font-black opacity-10 italic select-none">FRESH</div>
             </div>
@@ -65,61 +66,146 @@
                     <span id="category-label" class="text-green-600 font-black text-[10px] tracking-widest uppercase mb-1 block">ALL PRODUCTS</span>
                     <h3 id="current-category-name" class="text-2xl font-black text-slate-800 tracking-tight">전체 상품</h3>
                 </div>
-                <div class="text-xs font-bold text-slate-400">총 <span id="product-count" class="text-green-600">0</span>개 상품</div>
+                <div class="text-xs font-bold text-slate-400">총 <span id="product-count" class="text-green-600">0</span>개 품목</div>
             </div>
             
-            <!-- 상품 그리드 -->
             <div id="product-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                 <!-- JS 렌더링 -->
             </div>
         </section>
     </main>
 
-    <!-- 회원가입 모달 -->
-    <div id="signupModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 modal-bg animate-in fade-in duration-300">
-        <div class="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-black text-slate-800 tracking-tight">회원가입</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-2xl">✕</button>
+    <!-- 상품 상세 옵션 모달 -->
+    <div id="productModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 modal-bg">
+        <div class="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in duration-200">
+            <div class="relative h-64 bg-slate-100">
+                <img id="modalImg" src="" class="w-full h-full object-cover">
+                <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-white/50 backdrop-blur-md w-10 h-10 rounded-full flex items-center justify-center text-slate-800 font-bold">✕</button>
             </div>
+            <div class="p-8">
+                <div class="mb-6">
+                    <span id="modalPartner" class="text-[10px] font-black bg-slate-100 px-2 py-1 rounded text-slate-500 mb-2 inline-block uppercase">거래처</span>
+                    <h3 id="modalTitle" class="text-2xl font-black text-slate-800 tracking-tight">상품명</h3>
+                </div>
+                
+                <div class="mb-6">
+                    <p class="text-xs font-bold text-slate-400 mb-3">옵션 선택 (중량/규격)</p>
+                    <div id="modalOptions" class="grid grid-cols-2 gap-2">
+                        <!-- 옵션 버튼들 렌더링 -->
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-6 border-t border-slate-100">
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold uppercase">최종 공급가</p>
+                        <p id="modalPrice" class="text-2xl font-black text-green-600">0원</p>
+                    </div>
+                    <button class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-lg hover:bg-green-600 transition-all">장바구니 담기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 회원가입 모달 -->
+    <div id="signupModal" class="fixed inset-0 z-[120] hidden flex items-center justify-center p-4 modal-bg">
+        <div class="bg-white w-full max-w-md rounded-[32px] p-8">
+            <h3 class="text-2xl font-black mb-6">회원가입</h3>
             <div class="space-y-4">
-                <input type="text" placeholder="상호명" class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-xl text-sm outline-none focus:border-green-500 transition-colors">
-                <input type="email" placeholder="이메일" class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-xl text-sm outline-none focus:border-green-500 transition-colors">
-                <button class="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-green-100 mt-4">가입하기</button>
+                <input type="text" placeholder="상호명" class="w-full bg-slate-50 border px-4 py-3 rounded-xl outline-none">
+                <button class="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg">가입하기</button>
+                <button onclick="closeSignupModal()" class="w-full text-slate-400 text-sm font-bold">닫기</button>
             </div>
         </div>
     </div>
 
     <script>
-        // 1. 스프레드시트 통합 데이터 (모티스 & 그린컴퍼니 통합 반영)
-        // 실제 운영 시에는 해당 스프레드시트 API를 호출하거나 서버에서 주기적으로 이 배열을 업데이트합니다.
+        // 가격 계산 함수: 마진 20% 적용 + 백원 단위 절삭
+        function calculatePrice(basePrice) {
+            return Math.floor((basePrice * 1.2) / 100) * 100;
+        }
+
+        // [상품 데이터 베이스]
         const products = [
-            // [그린컴퍼니 데이터 샘플 기반]
-            { id: 101, category: '과일류', name: '영암 고당도 무화과 1kg', price: 15900, image: 'https://images.unsplash.com/photo-1596435308233-0b0c26563604?auto=format&fit=crop&q=80&w=400', partner: '그린컴퍼니' },
-            { id: 102, category: '과일류', name: '제주 하우스 감귤 3kg', price: 24000, image: 'https://images.unsplash.com/photo-1557800636-894a64c1696f?auto=format&fit=crop&q=80&w=400', partner: '그린컴퍼니' },
-            { id: 103, category: '채소류', name: '청양 고추 500g', price: 4500, image: 'https://images.unsplash.com/photo-1589668352651-72782787883a?auto=format&fit=crop&q=80&w=400', partner: '그린컴퍼니' },
-            { id: 104, category: '채소류', name: '국산 깐마늘 1kg', price: 11000, image: 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&q=80&w=400', partner: '그린컴퍼니' },
-            { id: 105, category: '농수산물', name: '완도 전복 1kg (대)', price: 42000, image: 'https://images.unsplash.com/photo-1621263764200-e1444c542c3d?auto=format&fit=crop&q=80&w=400', partner: '그린컴퍼니' },
-            
-            // [모티스 데이터 샘플 기반]
-            { id: 201, category: '축산물', name: '한우 투뿔 채끝 300g', price: 48000, image: 'https://images.unsplash.com/photo-1546248136-3d215ecb26d1?auto=format&fit=crop&q=80&w=400', partner: '모티스' },
-            { id: 202, category: '축산물', name: '벌집 삼겹살 600g', price: 18900, image: 'https://images.unsplash.com/photo-1602491673980-73aa38de027a?auto=format&fit=crop&q=80&w=400', partner: '모티스' },
-            { id: 203, category: '가공식품', name: '프리미엄 사과즙 30포', price: 22000, image: 'https://images.unsplash.com/photo-1565849906673-530d7b27deb7?auto=format&fit=crop&q=80&w=400', partner: '모티스' },
-            { id: 204, category: '가공식품', name: '유기농 참기름 300ml', price: 15000, image: 'https://images.unsplash.com/photo-1474979266404-7eaacbad8f0f?auto=format&fit=crop&q=80&w=400', partner: '모티스' },
-            
-            // 추가 상품들 (스프레드시트의 수백 개 데이터를 여기에 계속 추가)
-            { id: 106, category: '과일류', name: '샤인머스켓 2kg', price: 32000, image: 'https://images.unsplash.com/photo-1537084642907-629340c7e59c?auto=format&fit=crop&q=80&w=400', partner: '그린컴퍼니' },
-            { id: 107, category: '과일류', name: '부사 사과 5kg', price: 29800, image: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&q=80&w=400', partner: '그린컴퍼니' },
-            { id: 108, category: '채소류', name: '강원도 흙당근 2kg', price: 5800, image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&q=80&w=400', partner: '그린컴퍼니' },
-            { id: 109, category: '농수산물', name: '영덕 대게 2마리', price: 85000, image: 'https://images.unsplash.com/photo-1551443874-899753177699?auto=format&fit=crop&q=80&w=400', partner: '그린컴퍼니' },
-            { id: 205, category: '축산물', name: '양념 소갈비 1kg', price: 35000, image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&q=80&w=400', partner: '모티스' },
+            {
+                id: 1,
+                category: '과일류',
+                name: '칠레산 체리',
+                image: 'https://images.unsplash.com/photo-1528821128474-27f963b067bf?auto=format&fit=crop&q=80&w=400',
+                partner: '그린컴퍼니',
+                options: [
+                    { label: '10R 300g', basePrice: 8000 },
+                    { label: '10R 500g', basePrice: 12000 },
+                    { label: '10R 1kg', basePrice: 22000 },
+                    { label: '10R 2kg', basePrice: 42000 },
+                    { label: '10R 5kg', basePrice: 98000 },
+                    { label: '9.5R 특 500g', basePrice: 15000 },
+                    { label: '9.5R 특 1kg', basePrice: 28000 }
+                ]
+            },
+            {
+                id: 2,
+                category: '과일류',
+                name: '영암 무화과',
+                image: 'https://images.unsplash.com/photo-1596435308233-0b0c26563604?auto=format&fit=crop&q=80&w=400',
+                partner: '농협청과',
+                options: [
+                    { label: '1kg (4-6과)', basePrice: 12000 },
+                    { label: '2kg (8-12과)', basePrice: 22000 }
+                ]
+            },
+            {
+                id: 3,
+                category: '채소류',
+                name: '깐마늘 (국산)',
+                image: 'https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?auto=format&fit=crop&q=80&w=400',
+                partner: '프레시팜',
+                options: [
+                    { label: '500g 봉지', basePrice: 4500 },
+                    { label: '1kg 봉지', basePrice: 8500 },
+                    { label: '5kg 대용량', basePrice: 38000 }
+                ]
+            },
+            {
+                id: 4,
+                category: '축산물',
+                name: '한우 채끝살',
+                image: 'https://images.unsplash.com/photo-1546248136-3d215ecb26d1?auto=format&fit=crop&q=80&w=400',
+                partner: '모티스축산',
+                options: [
+                    { label: '200g (스테이크용)', basePrice: 32000 },
+                    { label: '400g (구이용)', basePrice: 62000 }
+                ]
+            },
+            {
+                id: 5,
+                category: '과일류',
+                name: '청송 사과(부사)',
+                image: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&q=80&w=400',
+                partner: '그린컴퍼니',
+                options: [
+                    { label: '5kg (13-15과)', basePrice: 45000 },
+                    { label: '10kg (26-30과)', basePrice: 82000 }
+                ]
+            },
+            {
+                id: 6,
+                category: '농수산물',
+                name: '완도 활 전복',
+                image: 'https://images.unsplash.com/photo-1621263764200-e1444c542c3d?auto=format&fit=crop&q=80&w=400',
+                partner: '바다유통',
+                options: [
+                    { label: '1kg (15-20미)', basePrice: 35000 },
+                    { label: '1kg (10-12미)', basePrice: 48000 }
+                ]
+            }
         ];
 
         const categories = ['전체', '과일류', '채소류', '축산물', '농수산물', '가공식품'];
         let currentCategory = '전체';
         let searchQuery = '';
+        let selectedProduct = null;
+        let selectedOptionIndex = 0;
 
-        // 카테고리별 아이콘 매칭
         function getEmoji(cat) {
             const icons = { '전체': '📦', '과일류': '🍎', '채소류': '🥬', '축산물': '🥩', '농수산물': '🐟', '가공식품': '🥫' };
             return icons[cat] || '📍';
@@ -151,10 +237,9 @@
             const title = document.getElementById('current-category-name');
             const label = document.getElementById('category-label');
 
-            // 필터링 로직: 카테고리 + 검색어
             let filtered = products.filter(p => {
                 const matchCategory = category === '전체' || p.category === category;
-                const matchSearch = p.name.toLowerCase().includes(searchQuery);
+                const matchSearch = p.name.toLowerCase().includes(searchQuery) || p.partner.includes(searchQuery);
                 return matchCategory && matchSearch;
             });
 
@@ -162,37 +247,74 @@
             title.innerText = searchQuery ? `'${searchQuery}' 검색 결과` : (category === '전체' ? '전체 상품' : category);
             label.innerText = category.toUpperCase();
 
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-400 font-medium">해당하는 상품이 없습니다.</div>`;
-            } else {
-                grid.innerHTML = filtered.map(p => `
-                    <div class="bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all group flex flex-col">
+            grid.innerHTML = filtered.map(p => {
+                const minPrice = calculatePrice(p.options[0].basePrice);
+                return `
+                    <div onclick="openProductModal(${p.id})" class="bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all group flex flex-col cursor-pointer">
                         <div class="relative w-full aspect-square bg-slate-100 overflow-hidden">
                             <img src="${p.image}" alt="${p.name}" class="product-img" onerror="this.src='https://via.placeholder.com/400x400?text=No+Image'">
                             <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-lg text-[10px] font-black text-slate-800 shadow-sm">${p.partner}</div>
                         </div>
                         <div class="p-4 flex flex-col flex-1">
-                            <h5 class="font-bold text-slate-800 text-sm mb-2 h-10 overflow-hidden line-clamp-2">${p.name}</h5>
-                            <div class="flex justify-between items-end mt-auto">
-                                <div>
-                                    <p class="text-[10px] text-slate-400 font-bold uppercase">${p.category}</p>
-                                    <p class="text-green-600 font-black text-base">${p.price.toLocaleString()}원</p>
+                            <h5 class="font-bold text-slate-800 text-sm mb-1">${p.name}</h5>
+                            <p class="text-[10px] text-slate-400 font-bold mb-3">${p.options.length}개의 규격/중량 선택</p>
+                            <div class="mt-auto flex justify-between items-center">
+                                <p class="text-green-600 font-black text-base">${minPrice.toLocaleString()}원~</p>
+                                <div class="w-8 h-8 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
                                 </div>
-                                <button class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center hover:bg-green-600 transition-colors shadow-lg shadow-slate-100">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                </button>
                             </div>
                         </div>
                     </div>
-                `).join('');
-            }
+                `;
+            }).join('');
             
             document.getElementById('hero-banner').style.display = (category === '전체' && !searchQuery) ? 'block' : 'none';
         }
 
+        function openProductModal(id) {
+            selectedProduct = products.find(p => p.id === id);
+            selectedOptionIndex = 0;
+            
+            document.getElementById('modalImg').src = selectedProduct.image;
+            document.getElementById('modalTitle').innerText = selectedProduct.name;
+            document.getElementById('modalPartner').innerText = selectedProduct.partner;
+            
+            renderOptions();
+            updateModalPrice();
+            
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+
+        function renderOptions() {
+            const container = document.getElementById('modalOptions');
+            container.innerHTML = selectedProduct.options.map((opt, idx) => `
+                <button onclick="selectOption(${idx})" class="text-xs font-bold py-3 px-2 border-2 rounded-xl transition-all ${idx === selectedOptionIndex ? 'option-selected' : 'border-slate-100 text-slate-500 hover:border-slate-300'}">
+                    ${opt.label}
+                </button>
+            `).join('');
+        }
+
+        function selectOption(idx) {
+            selectedOptionIndex = idx;
+            renderOptions();
+            updateModalPrice();
+        }
+
+        function updateModalPrice() {
+            const base = selectedProduct.options[selectedOptionIndex].basePrice;
+            const finalPrice = calculatePrice(base);
+            document.getElementById('modalPrice').innerText = finalPrice.toLocaleString() + '원';
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').classList.add('hidden');
+        }
+
+        function openSignupModal() { document.getElementById('signupModal').classList.remove('hidden'); }
+        function closeSignupModal() { document.getElementById('signupModal').classList.add('hidden'); }
+
         window.onload = () => renderProducts('전체');
-        function openModal() { document.getElementById('signupModal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('signupModal').classList.add('hidden'); }
     </script>
 </body>
 </html>
