@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tailwind CSS (디자인 도구) 불러오기 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Fresh Direct Admin</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+        }
+        /* 마우스 올렸을 때 그래프 막대 효과 */
+        .chart-bar { 
+            transition: all 0.3s ease; 
+            cursor: pointer; 
+        }
+        .chart-bar:hover { 
+            filter: brightness(1.2); 
+            transform: scaleX(1.1); 
+        }
+    </style>
+</head>
+<body>
+    <!-- 상단 바 (네비게이션) -->
+    <nav class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg text-xl">F</div>
+            <div>
+                <span class="font-black text-xl block leading-none tracking-tighter">ADMIN CENTER</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Fresh Direct v2.0</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-inner">
+                <button class="px-4 py-1.5 rounded-lg text-xs font-black bg-white text-indigo-600 shadow-sm">1W (주간)</button>
+                <button class="px-4 py-1.5 rounded-lg text-xs font-black text-slate-400 hover:text-slate-600">1M</button>
+                <button class="px-4 py-1.5 rounded-lg text-xs font-black text-slate-400 hover:text-slate-600">1Y</button>
+            </div>
+            <div class="h-6 w-[1px] bg-slate-200 mx-2"></div>
+            <span class="text-xs font-black text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100">● 대표님 접속중</span>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-8">
+        <!-- 상단 요약 카드 (매출, 수익, 마진율) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm">
+                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">총 매출 (Total Sales)</p>
+                <h3 class="text-3xl font-black italic">12,980,000원</h3>
+                <p class="text-green-500 text-xs font-bold mt-2">↑ 지난주 대비 12% 상승</p>
+            </div>
+            <div class="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm">
+                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">순이익 (Net Profit)</p>
+                <h3 class="text-3xl font-black italic text-indigo-600">2,596,000원</h3>
+                <p class="text-indigo-400 text-xs font-bold mt-2">목표 대비 95% 달성</p>
+            </div>
+            <div class="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm">
+                <p class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">평균 마진율 (Margin)</p>
+                <h3 class="text-3xl font-black italic text-slate-700">20.0%</h3>
+                <p class="text-slate-400 text-xs font-bold mt-2">업계 평균 대비 양호</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- 왼쪽: 매출 추이 그래프 -->
+            <div class="bg-white p-8 rounded-[40px] border border-slate-200 shadow-sm">
+                <div class="flex justify-between items-center mb-12">
+                    <h3 class="text-xl font-black italic">매출 추이 (Revenue)</h3>
+                    <span class="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded border">단위: 만원</span>
+                </div>
+                <div class="flex items-end justify-between h-64 gap-4 px-4 border-b border-slate-100">
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div class="w-full bg-slate-900 rounded-t-xl chart-bar shadow-lg relative" style="height: 40%">
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">120만</div>
+                        </div>
+                        <p class="mt-4 text-[11px] font-black text-slate-400">월</p>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div class="w-full bg-slate-900 rounded-t-xl chart-bar shadow-lg relative" style="height: 35%">
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">95만</div>
+                        </div>
+                        <p class="mt-4 text-[11px] font-black text-slate-400">화</p>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div class="w-full bg-slate-900 rounded-t-xl chart-bar shadow-lg relative" style="height: 65%">
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">158만</div>
+                        </div>
+                        <p class="mt-4 text-[11px] font-black text-slate-400">수</p>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div class="w-full bg-slate-900 rounded-t-xl chart-bar shadow-lg relative" style="height: 85%">
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">210만</div>
+                        </div>
+                        <p class="mt-4 text-[11px] font-black text-slate-400">목</p>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div class="w-full bg-slate-900 rounded-t-xl chart-bar shadow-lg relative" style="height: 100%">
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">290만</div>
+                        </div>
+                        <p class="mt-4 text-[11px] font-black text-slate-400">금</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 오른쪽: 수익 분석 그래프 -->
+            <div class="bg-white p-8 rounded-[40px] border border-slate-200 shadow-sm">
+                <div class="flex justify-between items-center mb-12">
+                    <h3 class="text-xl font-black italic">수익 분석 (Profit)</h3>
+                    <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">고정 마진: 20%</span>
+                </div>
+                <div class="flex items-end justify-between h-64 gap-4 px-4 border-b border-slate-100">
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div class="w-full bg-emerald-500 rounded-t-xl chart-bar shadow-lg shadow-emerald-50 relative" style="height: 40%">
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">24만</div>
+                        </div>
+                        <p class="mt-4 text-[11px] font-black text-slate-400">월</p>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div class="w-full bg-emerald-500 rounded-t-xl chart-bar shadow-lg shadow-emerald-50 relative" style="height: 35%">
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">19만</div>
+                        </div>
+                        <p class="mt-4 text-[11px] font-black text-slate-400">화</p>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div class="w-full bg-emerald-500 rounded-t-xl chart-bar shadow-lg shadow-emerald-50 relative" style="height: 65%">
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">31만</div>
+                        </div>
+                        <p class="mt-4 text-[11px] font-black text-slate-400">수</p>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div class="w-full bg-emerald-500 rounded-t-xl chart-bar shadow-lg shadow-emerald-50 relative" style="height: 85%">
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">42만</div>
+                        </div>
+                        <p class="mt-4 text-[11px] font-black text-slate-400">목</p>
+                    </div>
+                    <div class="flex-1 flex flex-col items-center group">
+                        <div class="w-full bg-emerald-500 rounded-t-xl chart-bar shadow-lg shadow-emerald-50 relative" style="height: 100%">
+                            <div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity">58만</div>
+                        </div>
+                        <p class="mt-4 text-[11px] font-black text-slate-400">금</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 AI 리포트 -->
+        <div class="mt-8 bg-slate-900 rounded-[40px] p-10 text-white shadow-2xl relative overflow-hidden">
+            <h3 class="text-2xl font-black mb-4 italic flex items-center gap-2">
+                "실시간 경영 분석 리포트" <span class="text-[10px] bg-indigo-500 px-2 py-1 rounded-full not-italic">AI INSIGHT</span>
+            </h3>
+            <p class="text-slate-400 text-sm leading-relaxed font-medium max-w-2xl">
+                현재 매출 데이터 분석 결과, 이번 주 금요일 매출이 최고치를 기록했습니다. 
+                전 주 대비 <span class="text-indigo-400 font-bold underline">14.2%의 성장률</span>을 보이고 있으며, 
+                현재의 수익 구조를 유지할 경우 월말 목표 달성이 확실시됩니다.
+            </p>
+            <!-- 배경 장식용 아이콘 느낌 -->
+            <div class="absolute -right-10 -bottom-10 opacity-10 text-[160px] font-black italic">DATA</div>
+        </div>
+    </main>
+
+    <footer class="max-w-7xl mx-auto px-8 py-12 text-slate-400 text-[10px] font-bold uppercase tracking-widest flex justify-between">
+        <p>© 2024 Fresh Direct Management System</p>
+        <div class="flex gap-4">
+            <a href="#" class="hover:text-slate-900 transition-colors">데이터 백업</a>
+            <a href="#" class="hover:text-slate-900 transition-colors">시스템 설정</a>
+        </div>
+    </footer>
+</body>
+</html>
