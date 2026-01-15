@@ -10,25 +10,69 @@
         body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .modal-bg { background-color: rgba(0, 0, 0, 0.5); }
+        .active-category { background-color: #16a34a !important; color: white !important; }
     </style>
 </head>
 <body class="pb-24">
 
     <!-- 상단 네비게이션 -->
     <nav class="bg-white/80 backdrop-blur-md px-4 md:px-8 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm border-b border-slate-100">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="location.href='index.html'">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="renderProducts('전체')">
             <div class="w-9 h-9 bg-green-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-green-100">F</div>
             <span class="font-black text-xl tracking-tight text-slate-800">Fresh<span class="text-green-600">Direct</span></span>
         </div>
         
         <div class="flex items-center gap-3">
             <button class="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors">로그인</button>
-            <!-- 회원가입 버튼에 클릭 이벤트 추가 -->
             <button onclick="openModal()" class="text-xs font-black bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-slate-700 transition-all shadow-md">회원가입</button>
         </div>
     </nav>
 
-    <!-- 회원가입 모달 UI (기본 숨김) -->
+    <!-- 메인 컨텐츠 -->
+    <main class="max-w-6xl mx-auto px-4">
+        
+        <!-- 프로모션 배너 (전체보기일 때만 노출 가능하도록 설정 가능) -->
+        <section id="hero-banner" class="mt-6">
+            <div class="bg-gradient-to-br from-green-600 to-emerald-800 rounded-[32px] p-8 text-white relative overflow-hidden shadow-2xl shadow-green-100">
+                <div class="relative z-10">
+                    <span class="bg-white/20 backdrop-blur-sm text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block border border-white/20">B2B Special</span>
+                    <h2 class="text-3xl md:text-4xl font-black leading-tight mb-4">
+                        대량 구매 시<br>
+                        추가 10% 할인 혜택
+                    </h2>
+                    <p class="text-white/80 text-sm font-medium mb-6">스프레드시트 연동 상품 실시간 업데이트 중</p>
+                </div>
+                <div class="absolute -right-10 -bottom-10 text-[180px] font-black opacity-10 italic select-none">MART</div>
+            </div>
+        </section>
+
+        <!-- 카테고리 퀵 메뉴 -->
+        <section class="mt-10 overflow-x-auto no-scrollbar py-2">
+            <div id="category-list" class="flex gap-4 min-w-max">
+                <!-- 자바스크립트에서 렌더링 됩니다 -->
+            </div>
+        </section>
+
+        <!-- 상품 리스트 섹션 -->
+        <section class="mt-12">
+            <div class="flex justify-between items-end mb-6">
+                <div>
+                    <span id="category-label" class="text-green-600 font-black text-[10px] tracking-widest uppercase mb-1 block">ALL PRODUCTS</span>
+                    <h3 id="current-category-name" class="text-2xl font-black text-slate-800 tracking-tight">전체 상품</h3>
+                </div>
+                <div class="text-xs font-bold text-slate-400">총 <span id="product-count" class="text-green-600">0</span>개 상품</div>
+            </div>
+            
+            <!-- 실제 상품이 들어가는 그리드 -->
+            <div id="product-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <!-- 상품 데이터가 여기에 뿌려집니다 -->
+            </div>
+        </section>
+
+        <!-- 하단 정보 생략 가능 (이전과 동일) -->
+    </main>
+
+    <!-- 회원가입 모달 UI (동일) -->
     <div id="signupModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 modal-bg animate-in fade-in duration-300">
         <div class="bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl">
             <div class="flex justify-between items-center mb-6">
@@ -36,183 +80,111 @@
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-2xl">✕</button>
             </div>
             <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Company Name</label>
-                    <input type="text" placeholder="상호명을 입력하세요" class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-xl text-sm outline-none focus:border-green-500 transition-colors">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Email Address</label>
-                    <input type="email" placeholder="이메일 주소를 입력하세요" class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-xl text-sm outline-none focus:border-green-500 transition-colors">
-                </div>
-                <div>
-                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Password</label>
-                    <input type="password" placeholder="비밀번호를 입력하세요" class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-xl text-sm outline-none focus:border-green-500 transition-colors">
-                </div>
-                <button class="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-green-100 mt-4 hover:bg-green-700 transition-all">가입하기</button>
-                <p class="text-[10px] text-center text-slate-400 mt-4 font-medium italic">By joining, you agree to our Terms and Privacy Policy.</p>
+                <input type="text" placeholder="상호명" class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-xl text-sm outline-none focus:border-green-500 transition-colors">
+                <input type="email" placeholder="이메일" class="w-full bg-slate-50 border border-slate-100 px-4 py-3 rounded-xl text-sm outline-none focus:border-green-500 transition-colors">
+                <button class="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-green-100 mt-4">가입하기</button>
             </div>
         </div>
     </div>
 
-    <main class="max-w-6xl mx-auto px-4">
-        
-        <!-- 메인 프로모션 배너 -->
-        <section class="mt-6">
-            <div class="bg-gradient-to-br from-green-600 to-emerald-800 rounded-[32px] p-8 text-white relative overflow-hidden shadow-2xl shadow-green-100">
-                <div class="relative z-10">
-                    <span class="bg-white/20 backdrop-blur-sm text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block border border-white/20">Today's Event</span>
-                    <h2 class="text-3xl md:text-4xl font-black leading-tight mb-4">
-                        산지 직송,<br>
-                        가장 신선한 아침을 배달합니다.
-                    </h2>
-                    <p class="text-white/80 text-sm font-medium mb-6">오전 10시 전 주문 시 내일 새벽 도착 완료</p>
-                    <button class="bg-white text-green-700 px-6 py-3 rounded-2xl font-black text-sm shadow-xl hover:scale-105 transition-transform">지금 바로 주문하기</button>
-                </div>
-                <div class="absolute -right-10 -bottom-10 text-[180px] font-black opacity-10 italic select-none">FRESH</div>
-            </div>
-        </section>
-
-        <!-- 카테고리 퀵 메뉴 -->
-        <section class="mt-10 overflow-x-auto no-scrollbar py-2">
-            <div class="flex gap-4 min-w-max">
-                <div class="flex flex-col items-center gap-2 group cursor-pointer">
-                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-slate-100 group-hover:bg-green-50 transition-colors">🥬</div>
-                    <span class="text-[11px] font-bold text-slate-600">채소류</span>
-                </div>
-                <div class="flex flex-col items-center gap-2 group cursor-pointer">
-                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-slate-100 group-hover:bg-green-50 transition-colors">🍎</div>
-                    <span class="text-[11px] font-bold text-slate-600">과일류</span>
-                </div>
-                <div class="flex flex-col items-center gap-2 group cursor-pointer">
-                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-slate-100 group-hover:bg-green-50 transition-colors">🥩</div>
-                    <span class="text-[11px] font-bold text-slate-600">축산물</span>
-                </div>
-                <div class="flex flex-col items-center gap-2 group cursor-pointer">
-                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-slate-100 group-hover:bg-green-50 transition-colors">🥫</div>
-                    <span class="text-[11px] font-bold text-slate-600">가공식품</span>
-                </div>
-                <div class="flex flex-col items-center gap-2 group cursor-pointer">
-                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-slate-100 group-hover:bg-green-50 transition-colors">🥖</div>
-                    <span class="text-[11px] font-bold text-slate-600">베이커리</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- [협력사 1번] 신선 농산물 섹션 -->
-        <section class="mt-12">
-            <div class="flex justify-between items-end mb-6">
-                <div>
-                    <span class="text-green-600 font-black text-[10px] tracking-widest uppercase mb-1 block">Partner A</span>
-                    <h3 class="text-2xl font-black text-slate-800 tracking-tight">전남 산지직송 <span class="text-green-600">채소 전문</span></h3>
-                </div>
-                <button class="text-xs font-bold text-slate-400">전체보기 ></button>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-white rounded-[32px] p-4 border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-                    <div class="w-full aspect-square bg-slate-50 rounded-2xl mb-4 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform">🥬</div>
-                    <h5 class="font-bold text-slate-800 text-sm mb-1 leading-tight">해남 명품 쌈배추</h5>
-                    <p class="text-green-600 font-black text-lg">2,500원</p>
-                    <button class="w-full mt-4 bg-slate-50 py-3 rounded-xl text-xs font-bold text-slate-400 group-hover:bg-green-600 group-hover:text-white transition-all">+ 담기</button>
-                </div>
-                <div class="bg-white rounded-[32px] p-4 border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-                    <div class="w-full aspect-square bg-slate-50 rounded-2xl mb-4 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform">🧅</div>
-                    <h5 class="font-bold text-slate-800 text-sm mb-1 leading-tight">무안 햇양파 5kg</h5>
-                    <p class="text-green-600 font-black text-lg">12,000원</p>
-                    <button class="w-full mt-4 bg-slate-50 py-3 rounded-xl text-xs font-bold text-slate-400 group-hover:bg-green-600 group-hover:text-white transition-all">+ 담기</button>
-                </div>
-                <div class="bg-white rounded-[32px] p-4 border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-                    <div class="w-full aspect-square bg-slate-50 rounded-2xl mb-4 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform">🥔</div>
-                    <h5 class="font-bold text-slate-800 text-sm mb-1 leading-tight">수미 감자 3kg</h5>
-                    <p class="text-green-600 font-black text-lg">8,500원</p>
-                    <button class="w-full mt-4 bg-slate-50 py-3 rounded-xl text-xs font-bold text-slate-400 group-hover:bg-green-600 group-hover:text-white transition-all">+ 담기</button>
-                </div>
-                <div class="bg-white rounded-[32px] p-4 border border-slate-100 shadow-sm hover:shadow-xl transition-all group">
-                    <div class="w-full aspect-square bg-slate-50 rounded-2xl mb-4 flex items-center justify-center text-5xl group-hover:scale-105 transition-transform">🥕</div>
-                    <h5 class="font-bold text-slate-800 text-sm mb-1 leading-tight">흙당근 1kg</h5>
-                    <p class="text-green-600 font-black text-lg">4,200원</p>
-                    <button class="w-full mt-4 bg-slate-50 py-3 rounded-xl text-xs font-bold text-slate-400 group-hover:bg-green-600 group-hover:text-white transition-all">+ 담기</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- [협력사 2번] 가공/저장식품 섹션 -->
-        <section class="mt-16 bg-slate-900 -mx-4 px-4 py-16 rounded-[48px] text-white">
-            <div class="flex justify-between items-end mb-8 px-2">
-                <div>
-                    <span class="text-indigo-400 font-black text-[10px] tracking-widest uppercase mb-1 block font-mono">Partner B</span>
-                    <h3 class="text-2xl font-black italic">고품격 <span class="text-indigo-400">식자재 가공</span></h3>
-                    <p class="text-white/40 text-[10px] mt-1">인기 냉동 및 가공 식자재 엄선</p>
-                </div>
-                <button class="text-xs font-bold text-white/40 border-b border-white/10 pb-1">VIEW ALL</button>
-            </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="bg-white/5 rounded-[32px] p-5 border border-white/10 hover:bg-white/10 transition-all">
-                    <div class="w-full aspect-square bg-white/5 rounded-2xl mb-4 flex items-center justify-center text-5xl">🥫</div>
-                    <h5 class="font-bold text-sm mb-1">토마토 페이스트 2kg</h5>
-                    <p class="text-indigo-400 font-black text-lg">15,900원</p>
-                </div>
-                <div class="bg-white/5 rounded-[32px] p-5 border border-white/10 hover:bg-white/10 transition-all">
-                    <div class="w-full aspect-square bg-white/5 rounded-2xl mb-4 flex items-center justify-center text-5xl">🍝</div>
-                    <h5 class="font-bold text-sm mb-1">스파게티 면 5kg</h5>
-                    <p class="text-indigo-400 font-black text-lg">13,500원</p>
-                </div>
-                <div class="bg-white/5 rounded-[32px] p-5 border border-white/10 hover:bg-white/10 transition-all">
-                    <div class="w-full aspect-square bg-white/5 rounded-2xl mb-4 flex items-center justify-center text-5xl">🧀</div>
-                    <h5 class="font-bold text-sm mb-1">모짜렐라 치즈 2.5kg</h5>
-                    <p class="text-indigo-400 font-black text-lg">28,000원</p>
-                </div>
-                <div class="bg-white/5 rounded-[32px] p-5 border border-white/10 hover:bg-white/10 transition-all">
-                    <div class="w-full aspect-square bg-white/5 rounded-2xl mb-4 flex items-center justify-center text-5xl">🍗</div>
-                    <h5 class="font-bold text-sm mb-1">순살 치킨 가라아게</h5>
-                    <p class="text-indigo-400 font-black text-lg">11,200원</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- 하단 고객센터 정보 -->
-        <footer class="mt-20 border-t border-slate-200 pt-10 pb-20 px-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div>
-                    <h4 class="font-black text-slate-800 mb-4 italic">Fresh Direct Customer Center</h4>
-                    <p class="text-3xl font-black text-green-600 mb-2">1588-0000</p>
-                    <p class="text-xs text-slate-400 font-medium">상담시간: 평일 09:00 ~ 18:00 (주말/공휴일 휴무)</p>
-                </div>
-                <div class="space-y-2">
-                    <p class="text-[10px] text-slate-400 leading-relaxed font-medium">
-                        (주)프레시다이렉트 | 대표: 홍길동 | 사업자번호: 000-00-00000<br>
-                        주소: 서울특별시 강남구 테헤란로 123 | 통신판매업신고: 제2024-서울강남-0000호
-                    </p>
-                    <div class="flex gap-4 pt-4">
-                        <span class="text-xs font-bold text-slate-600 cursor-pointer">이용약관</span>
-                        <span class="text-xs font-black text-slate-800 cursor-pointer">개인정보처리방침</span>
-                    </div>
-                </div>
-            </div>
-        </footer>
-
-        <!-- 하단 앱 네비게이션 (모바일용) -->
-        <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-100 px-8 py-5 flex justify-between items-center z-50 rounded-t-[40px] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] md:hidden">
-            <div class="flex flex-col items-center gap-1.5"><span class="text-xl">🏠</span><span class="text-[9px] font-black text-green-600">홈</span></div>
-            <div class="flex flex-col items-center gap-1.5 opacity-30"><span class="text-xl">📋</span><span class="text-[9px] font-black text-slate-600 font-bold uppercase">Orders</span></div>
-            <div class="relative flex flex-col items-center gap-1.5 opacity-30">
-                <span class="text-xl font-bold bg-slate-800 text-white w-10 h-10 rounded-full flex items-center justify-center -mt-8 border-4 border-white shadow-lg">🛒</span>
-                <span class="text-[9px] font-black text-slate-600 pt-1 font-bold uppercase tracking-tighter">Cart</span>
-            </div>
-            <div class="flex flex-col items-center gap-1.5 opacity-30"><span class="text-xl">👤</span><span class="text-[9px] font-black text-slate-600 font-bold uppercase">My FD</span></div>
-        </div>
-
-    </main>
-
     <script>
-        function openModal() {
-            document.getElementById('signupModal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // 스크롤 방지
-        }
-        function closeModal() {
-            document.getElementById('signupModal').classList.add('hidden');
-            document.body.style.overflow = 'auto'; // 스크롤 재개
-        }
-    </script>
+        // 1. 상품 데이터 (스프레드시트의 내용을 이 리스트에 추가하시면 됩니다)
+        // 실제 운영 시에는 외부 JSON 파일을 불러오는 방식으로 확장 가능합니다.
+        const products = [
+            { id: 1, category: '채소류', name: '해남 명품 쌈배추', price: 2500, emoji: '🥬', partner: '전남 산지' },
+            { id: 2, category: '채소류', name: '무안 햇양파 5kg', price: 12000, emoji: '🧅', partner: '전남 산지' },
+            { id: 3, category: '채소류', name: '수미 감자 3kg', price: 8500, emoji: '🥔', partner: '강원 농가' },
+            { id: 4, category: '과일류', name: '청송 꿀사과 5kg', price: 28000, emoji: '🍎', partner: '경북 과수원' },
+            { id: 5, category: '과일류', name: '나주 신고배 1박스', price: 45000, emoji: '🍐', partner: '전남 과수원' },
+            { id: 6, category: '축산물', name: '한우 등심 1++ 500g', price: 65000, emoji: '🥩', partner: '횡성 축산' },
+            { id: 7, category: '축산물', name: '한돈 삼겹살 1kg', price: 24000, emoji: '🥓', partner: '도드람' },
+            { id: 8, category: '가공식품', name: '토마토 페이스트 2kg', price: 15900, emoji: '🥫', partner: '식자재몰' },
+            { id: 9, category: '가공식품', name: '스파게티 면 5kg', price: 13500, emoji: '🍝', partner: '이탈리푸드' },
+            { id: 10, category: '베이커리', name: '천연효모 바게트', price: 4500, emoji: '🥖', partner: '브레드공방' },
+            { id: 11, category: '베이커리', name: '통밀 식빵 2봉', price: 7000, emoji: '🍞', partner: '브레드공방' },
+            // 수백 개의 상품을 이곳에 리스트 형태로 계속 추가할 수 있습니다.
+        ];
 
+        const categories = ['전체', '채소류', '과일류', '축산물', '가공식품', '베이커리'];
+        let currentCategory = '전체';
+
+        // 2. 카테고리 메뉴 생성 함수
+        function renderCategories() {
+            const categoryList = document.getElementById('category-list');
+            categoryList.innerHTML = categories.map(cat => `
+                <div onclick="renderProducts('${cat}')" 
+                     class="category-item flex flex-col items-center gap-2 group cursor-pointer">
+                    <div class="w-16 h-16 ${cat === currentCategory ? 'active-category' : 'bg-white'} rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-slate-100 group-hover:bg-green-50 transition-colors">
+                        ${getEmoji(cat)}
+                    </div>
+                    <span class="text-[11px] font-bold ${cat === currentCategory ? 'text-green-600' : 'text-slate-600'}">${cat}</span>
+                </div>
+            `).join('');
+        }
+
+        function getEmoji(cat) {
+            switch(cat) {
+                case '전체': return '📦';
+                case '채소류': return '🥬';
+                case '과일류': return '🍎';
+                case '축산물': return '🥩';
+                case '가공식품': return '🥫';
+                case '베이커리': return '🥖';
+                default: return '📍';
+            }
+        }
+
+        // 3. 상품 리스트 렌더링 함수 (핵심 필터링 로직)
+        function renderProducts(category) {
+            currentCategory = category;
+            renderCategories(); // 카테고리 버튼 상태 업데이트
+
+            const grid = document.getElementById('product-grid');
+            const label = document.getElementById('category-label');
+            const title = document.getElementById('current-category-name');
+            const countDisplay = document.getElementById('product-count');
+
+            // 필터링
+            const filtered = category === '전체' 
+                ? products 
+                : products.filter(p => p.category === category);
+
+            // 텍스트 업데이트
+            label.innerText = category === '전체' ? 'ALL PRODUCTS' : category.toUpperCase();
+            title.innerText = category + (category === '전체' ? ' 상품' : ' 카테고리');
+            countDisplay.innerText = filtered.length;
+
+            // 그리드 생성
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-400 font-medium">준비된 상품이 없습니다.</div>`;
+            } else {
+                grid.innerHTML = filtered.map(p => `
+                    <div class="bg-white rounded-[24px] p-4 border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                        <div class="w-full aspect-square bg-slate-50 rounded-xl mb-3 flex items-center justify-center text-4xl group-hover:scale-105 transition-transform">
+                            ${p.emoji}
+                        </div>
+                        <div class="text-[10px] text-slate-400 font-bold mb-1">${p.partner}</div>
+                        <h5 class="font-bold text-slate-800 text-sm mb-2 h-10 overflow-hidden line-clamp-2">${p.name}</h5>
+                        <div class="flex justify-between items-center mt-auto">
+                            <p class="text-green-600 font-black text-base">${p.price.toLocaleString()}원</p>
+                            <button class="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 hover:bg-green-600 hover:text-white transition-colors">+</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // 배너 노출 여부 (전체일때만 보이기)
+            document.getElementById('hero-banner').style.display = category === '전체' ? 'block' : 'none';
+        }
+
+        // 초기 실행
+        window.onload = () => {
+            renderProducts('전체');
+        };
+
+        // 모달 제어
+        function openModal() { document.getElementById('signupModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('signupModal').classList.add('hidden'); }
+    </script>
 </body>
 </html>
