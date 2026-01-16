@@ -2,7 +2,8 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: ["main"] # 혹은 "master" (대표님 브랜치 이름 확인)
+    # main 혹은 master 브랜치에 푸시될 때 모두 실행되도록 수정
+    branches: ["main", "master"] 
   workflow_dispatch:
 
 permissions:
@@ -39,7 +40,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist' # 빌드된 결과물이 담기는 폴더 확인 (Vite는 보통 dist)
+          path: './dist' # Vite 빌드 결과물 폴더
 
       - name: Deploy to GitHub Pages
         id: deployment
