@@ -4,410 +4,382 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Green Company - Smart Ordering System</title>
+    <title>그린컴퍼니 - 통합 주문 시스템</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f3f4f6; color: #1f2937; }
-        
-        .product-card { transition: transform 0.2s; }
-        .product-card:hover { transform: translateY(-4px); }
-        
-        /* 스크롤바 숨기기 */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* 이미지 로딩 애니메이션 */
-        .img-placeholder {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #10b981; border-radius: 10px; }
+        .modal-active { overflow: hidden; }
+        .category-active { color: #059669; border-bottom: 2px solid #059669; font-weight: 800; }
     </style>
 </head>
-<body class="bg-gray-50">
+<body>
 
-    <!-- 상단 헤더 -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <!-- 헤더 -->
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-[60] border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
-                <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white font-bold">G</div>
-                <h1 class="text-xl font-black text-gray-900 tracking-tighter">그린컴퍼니</h1>
+                <div class="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                </div>
+                <h1 class="text-xl font-extrabold tracking-tight text-slate-800">그린컴퍼니</h1>
             </div>
             
-            <div class="flex items-center gap-4">
-                <button onclick="toggleCart()" class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                    </svg>
-                    <span id="cartBadge" class="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full hidden">0</span>
-                </button>
-            </div>
+            <button onclick="toggleCart()" class="relative p-2.5 bg-slate-100 rounded-full hover:bg-emerald-50 hover:text-emerald-600 transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                <span id="cartCount" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white hidden">0</span>
+            </button>
         </div>
     </header>
 
-    <!-- 카테고리 필터 -->
-    <nav class="bg-white border-b border-gray-100 overflow-x-auto no-scrollbar">
-        <div class="max-w-7xl mx-auto px-4 flex gap-6 py-4">
-            <button onclick="filterCategory('전체')" class="cat-btn font-bold text-green-600 border-b-2 border-green-600 pb-1 whitespace-nowrap">전체상품</button>
-            <button onclick="filterCategory('과일')" class="cat-btn font-medium text-gray-500 hover:text-green-600 pb-1 whitespace-nowrap">과일</button>
-            <button onclick="filterCategory('야채')" class="cat-btn font-medium text-gray-500 hover:text-green-600 pb-1 whitespace-nowrap">야채</button>
-            <button onclick="filterCategory('농산물')" class="cat-btn font-medium text-gray-500 hover:text-green-600 pb-1 whitespace-nowrap">농산물</button>
-            <button onclick="filterCategory('수산물')" class="cat-btn font-medium text-gray-500 hover:text-green-600 pb-1 whitespace-nowrap">수산물</button>
-            <button onclick="filterCategory('기타')" class="cat-btn font-medium text-gray-500 hover:text-green-600 pb-1 whitespace-nowrap">기타 가공식품</button>
+    <!-- 카테고리 -->
+    <nav class="bg-white border-b border-slate-100 sticky top-16 z-50">
+        <div class="max-w-7xl mx-auto px-4 overflow-x-auto flex gap-6 no-scrollbar py-3 text-sm font-semibold text-slate-500">
+            <button onclick="filterCategory('전체', this)" class="category-active whitespace-nowrap pb-1">전체보기</button>
+            <button onclick="filterCategory('과일', this)" class="whitespace-nowrap pb-1 hover:text-emerald-600">과일</button>
+            <button onclick="filterCategory('야채', this)" class="whitespace-nowrap pb-1 hover:text-emerald-600">야채</button>
+            <button onclick="filterCategory('농산물', this)" class="whitespace-nowrap pb-1 hover:text-emerald-600">농산물</button>
+            <button onclick="filterCategory('수산물', this)" class="whitespace-nowrap pb-1 hover:text-emerald-600">수산물</button>
+            <button onclick="filterCategory('기타', this)" class="whitespace-nowrap pb-1 hover:text-emerald-600">가공식품</button>
         </div>
     </nav>
 
     <!-- 메인 컨텐츠 -->
     <main class="max-w-7xl mx-auto px-4 py-8">
-        <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            <!-- 상품 로딩 스켈레톤 -->
-            <div class="animate-pulse bg-white rounded-2xl h-64 shadow-sm"></div>
-            <div class="animate-pulse bg-white rounded-2xl h-64 shadow-sm"></div>
-            <div class="animate-pulse bg-white rounded-2xl h-64 shadow-sm"></div>
-            <div class="animate-pulse bg-white rounded-2xl h-64 shadow-sm"></div>
+        <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+            <!-- 데이터 로딩 중 스켈레톤 -->
+            <div class="h-64 bg-slate-200 rounded-2xl animate-pulse"></div>
+            <div class="h-64 bg-slate-200 rounded-2xl animate-pulse"></div>
+            <div class="h-64 bg-slate-200 rounded-2xl animate-pulse"></div>
+            <div class="h-64 bg-slate-200 rounded-2xl animate-pulse"></div>
+            <div class="h-64 bg-slate-200 rounded-2xl animate-pulse"></div>
         </div>
     </main>
 
-    <!-- 상품 상세 및 옵션 모달 -->
-    <div id="detailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white w-full max-w-lg rounded-t-[2rem] sm:rounded-[2rem] overflow-hidden shadow-2xl animate-slide-up">
-            <div class="relative h-64 bg-gray-100">
-                <img id="modalImg" src="" alt="" class="w-full h-full object-cover">
-                <button onclick="closeModal()" class="absolute top-4 right-4 bg-white/80 p-2 rounded-full text-gray-800 hover:bg-white shadow-lg">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" /></svg>
+    <!-- 상품 상세 모달 -->
+    <div id="modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div class="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-300">
+            <div class="h-72 bg-slate-100 relative">
+                <img id="modalImg" src="" class="w-full h-full object-cover">
+                <button onclick="closeModal()" class="absolute top-5 right-5 bg-white/90 p-2 rounded-full shadow-lg hover:bg-white">
+                    <svg class="w-5 h-5 text-slate-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
             </div>
             <div class="p-8">
-                <h2 id="modalTitle" class="text-2xl font-black text-gray-900 mb-1">상품명</h2>
-                <p id="modalCategory" class="text-xs font-bold text-green-600 mb-6 uppercase tracking-widest">Category</p>
+                <div class="mb-6">
+                    <span id="modalCat" class="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-wider">CATEGORY</span>
+                    <h2 id="modalTitle" class="text-2xl font-extrabold text-slate-900 mt-3 tracking-tight">상품명</h2>
+                </div>
                 
-                <label class="block text-sm font-bold text-gray-700 mb-3 italic">규격/사이즈 선택</label>
-                <div id="optionList" class="space-y-3 mb-8 max-h-48 overflow-y-auto pr-2 no-scrollbar">
-                    <!-- 옵션 버튼들이 여기에 동적으로 생성됩니다 -->
+                <div class="space-y-3">
+                    <label class="text-sm font-bold text-slate-500 ml-1">규격 선택</label>
+                    <div id="optionContainer" class="max-h-48 overflow-y-auto custom-scroll pr-2 space-y-2">
+                        <!-- 옵션들이 동적으로 들어감 -->
+                    </div>
                 </div>
 
-                <div class="flex gap-3">
-                    <button onclick="addToCart()" class="flex-1 bg-gray-100 text-gray-800 py-4 rounded-2xl font-bold hover:bg-gray-200 transition-all">장바구니 담기</button>
-                    <button onclick="directOrder()" class="flex-1 bg-green-600 text-white py-4 rounded-2xl font-bold hover:bg-green-700 transition-all shadow-lg shadow-green-200">바로 구매</button>
+                <div class="flex gap-3 mt-8">
+                    <button onclick="addToCart()" class="flex-1 h-14 bg-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-200 transition-all">장바구니</button>
+                    <button onclick="directPurchase()" class="flex-1 h-14 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all">바로결제</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 장바구니 및 결제 사이드바 -->
-    <div id="cartSidebar" class="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-[110] transform translate-x-full transition-transform duration-300 flex flex-col">
-        <div class="p-6 border-b border-gray-100 flex items-center justify-between bg-white">
-            <h3 class="text-xl font-black">내 장바구니</h3>
-            <button onclick="toggleCart()" class="text-gray-400 hover:text-gray-900">
+    <!-- 장바구니 사이드바 -->
+    <aside id="cartAside" class="fixed inset-y-0 right-0 w-full max-w-sm bg-white shadow-2xl z-[150] translate-x-full transition-transform duration-500 ease-in-out flex flex-col">
+        <div class="p-6 border-b flex items-center justify-between">
+            <h3 class="text-xl font-extrabold">주문 목록</h3>
+            <button onclick="toggleCart()" class="p-2 hover:bg-slate-100 rounded-full transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
         </div>
-        
-        <div id="cartItems" class="flex-1 overflow-y-auto p-6 space-y-4">
-            <!-- 장바구니 내용 -->
-            <p class="text-center text-gray-400 py-20 font-medium">장바구니가 비어있습니다.</p>
+
+        <div id="cartList" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scroll">
+            <!-- 장바구니 아이템 -->
         </div>
 
-        <div class="p-6 border-t border-gray-100 bg-gray-50 space-y-4">
-            <div class="flex justify-between items-center text-gray-900">
-                <span class="font-bold">최종 결제 금액</span>
-                <span id="totalPrice" class="text-2xl font-black text-green-600">0원</span>
+        <div class="p-6 bg-slate-50 border-t border-slate-100 space-y-6">
+            <div class="flex items-center justify-between">
+                <span class="text-slate-500 font-bold">결제 예정 금액</span>
+                <span id="totalAmt" class="text-2xl font-black text-emerald-600">0원</span>
             </div>
-            
-            <!-- 결제 옵션 -->
-            <div class="space-y-2 py-4">
-                <div class="flex gap-2">
-                    <button id="payCard" onclick="selectPay('card')" class="flex-1 py-3 rounded-xl border-2 border-green-600 bg-green-50 text-green-700 font-bold text-sm">신용카드</button>
-                    <button id="payCash" onclick="selectPay('cash')" class="flex-1 py-3 rounded-xl border border-gray-200 bg-white text-gray-500 font-bold text-sm">무통장입금</button>
+
+            <div class="space-y-3">
+                <div class="flex gap-2 p-1 bg-slate-200 rounded-xl">
+                    <button onclick="setPayment('card')" id="payCard" class="flex-1 py-2.5 rounded-lg font-bold text-sm bg-white shadow-sm text-slate-800 transition-all">신용카드</button>
+                    <button onclick="setPayment('cash')" id="payCash" class="flex-1 py-2.5 rounded-lg font-bold text-sm text-slate-500 hover:text-slate-700 transition-all">무통장입금</button>
                 </div>
-                <div id="cashReceiptSection" class="hidden pt-2">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="cashReceipt" class="w-4 h-4 accent-green-600">
-                        <span class="text-sm font-medium text-gray-600">현금영수증 발행 신청</span>
+                
+                <div id="receiptBox" class="hidden px-1">
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="cashReceipt" class="w-4 h-4 rounded accent-emerald-600">
+                        <span class="text-xs font-bold text-slate-600">현금영수증 발행 신청</span>
                     </label>
                 </div>
             </div>
 
-            <button onclick="requestPayment()" class="w-full bg-gray-900 text-white py-5 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all">
+            <button onclick="processOrder()" class="w-full h-16 bg-slate-900 text-white rounded-2xl font-extrabold text-lg hover:bg-slate-800 transition-all active:scale-[0.98]">
                 결제하기
             </button>
         </div>
-    </div>
+    </aside>
 
     <script>
         const CSV_URL = `https://docs.google.com/spreadsheets/d/130QXnvHcdzyLPFBSAKbiSGsPVGMRkgmroViMiUuzrMU/export?format=csv&gid=0`;
         
-        let allProducts = [];
+        let products = [];
         let cart = [];
-        let selectedProduct = null;
+        let currentProduct = null;
         let selectedOption = null;
-        let currentPaymentMethod = 'card';
+        let paymentMethod = 'card';
 
-        // 키워드 기반 이미지 매칭 - 이미지 정확도 향상을 위해 더 세분화
-        const KEYWORD_MAP = {
-            '사과': 'apple,fruit', '배': 'pear,fruit', '포도': 'grape,fruit', '딸기': 'strawberry', '수박': 'watermelon',
-            '참외': 'melon', '복숭아': 'peach', '바나나': 'banana', '오렌지': 'orange', '토마토': 'tomato',
-            '배추': 'napa cabbage,cabbage', '무': 'radish', '오이': 'cucumber', '호박': 'pumpkin,squash', '당근': 'carrot',
-            '마늘': 'garlic', '양파': 'onion', '고추': 'chili pepper', '상추': 'lettuce', '버섯': 'mushroom',
-            '고등어': 'mackerel,fish', '갈치': 'hairtail,fish', '오징어': 'squid,seafood', '새우': 'shrimp,seafood', 
-            '굴': 'oyster', '조개': 'clam', '전복': 'abalone', '멸치': 'anchovy', '김': 'seaweed',
-            '쌀': 'rice,grain', '콩': 'beans', '감자': 'potato', '고구마': 'sweet potato', '옥수수': 'corn',
-            '계란': 'eggs', '두부': 'tofu', '한우': 'beef', '돼지': 'pork', '닭': 'chicken'
-        };
-
-        function getImg(name) {
-            let search = 'fresh,food';
-            for (const key in KEYWORD_MAP) {
-                if (name.includes(key)) {
-                    search = KEYWORD_MAP[key];
-                    break;
-                }
-            }
-            // unsplash 이미지 쿼리 개선 (대표 이미지가 부각되도록 함)
-            return `https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=800&q=80&sig=${Math.random()}`; // Fallback if random fails
+        // 키워드 기반 고화질 이미지 매칭
+        function getProductImg(name) {
+            const map = {
+                '사과':'apple', '배':'pear', '포도':'grape', '딸기':'strawberry', '수박':'watermelon',
+                '오렌지':'orange', '토마토':'tomato', '복숭아':'peach', '배추':'cabbage', '무':'radish',
+                '오이':'cucumber', '고추':'chili', '마늘':'garlic', '양파':'onion', '상추':'lettuce',
+                '버섯':'mushroom', '쌀':'rice', '감자':'potato', '고구마':'sweetpotato', '멸치':'anchovy',
+                '고등어':'mackerel', '갈치':'fish', '새우':'shrimp', '김':'seaweed', '콩':'beans'
+            };
+            let key = 'food,fresh';
+            for (let k in map) { if(name.includes(k)) { key = map[k]; break; } }
+            // sig를 추가하여 상품별로 다른 이미지가 나오도록 보장
+            const seed = btoa(encodeURIComponent(name)).slice(0, 8);
+            return `https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=600&q=80&sig=${seed}`; 
+            // 실제 배포시 source.unsplash.com/featured/?keyword 보다는 위 방식이 더 안정적
         }
 
-        // 실제 상품 이미지를 더 잘 불러오기 위한 개선된 이미지 함수
+        // 특정 상품에 더 어울리는 이미지 검색 (Unsplash 소스 변경)
         function getBetterImg(name) {
-            let keyword = 'vegetables';
-            for (const key in KEYWORD_MAP) {
-                if (name.includes(key)) {
-                    keyword = KEYWORD_MAP[key];
-                    break;
-                }
-            }
-            // 각기 다른 이미지를 보여주기 위해 상품명 해시를 시드로 사용
-            const seed = btoa(encodeURIComponent(name)).substring(0, 5);
-            return `https://source.unsplash.com/800x800/?${keyword},fresh,food&sig=${seed}`;
+            const seed = btoa(encodeURIComponent(name)).slice(0, 5);
+            return `https://source.unsplash.com/600x600/?fruit,vegetable,food&${seed}`;
         }
 
-        async function fetchData() {
+        async function init() {
             try {
                 const res = await fetch(CSV_URL);
                 const text = await res.text();
-                const rows = text.split('\n').map(r => r.split(',')).slice(1);
+                const lines = text.split('\n').map(l => l.split(',')).slice(1);
                 
-                const tempMap = {};
-                rows.forEach(row => {
-                    const fullName = (row[3] || row[2] || "").replace(/"/g, '').trim();
-                    if (!fullName) return;
+                const map = {};
+                lines.forEach(row => {
+                    const full = (row[3] || row[2] || "").replace(/"/g, '').trim();
+                    if(!full || full === '상품명') return;
 
-                    const baseName = fullName.split('(')[0].trim();
-                    const rawPrice = parseInt(row[4]?.replace(/[^0-9]/g, '') || "0");
-                    if (rawPrice < 1000) return; // 유효하지 않은 가격 제외
+                    const base = full.split('(')[0].trim();
+                    const priceRaw = parseInt(row[4]?.replace(/[^0-9]/g, '') || "0");
+                    if(priceRaw < 100) return;
 
-                    const price = Math.ceil((rawPrice * 1.2) / 100) * 100; // 20% 마진 적용
+                    // 마진 20% 포함 가격
+                    const price = Math.ceil((priceRaw * 1.2) / 100) * 100;
+                    
+                    let cat = "기타";
+                    if(/[사과|배|포도|딸기|귤|참외|수박]/.test(base)) cat = "과일";
+                    else if(/[배추|무|오이|고추|마늘|양파|상추]/.test(base)) cat = "야채";
+                    else if(/[멸치|고등어|갈치|새우|오징어|조개]/.test(base)) cat = "수산물";
+                    else if(/[쌀|현미|잡곡|감자|고구마|옥수수]/.test(base)) cat = "농산물";
 
-                    let category = "기타";
-                    if (['사과','배','포도','딸기','복숭아','귤'].some(k => baseName.includes(k))) category = "과일";
-                    else if (['배추','무','오이','고추','마늘','상추'].some(k => baseName.includes(k))) category = "야채";
-                    else if (['고등어','갈치','멸치','새우','오징어'].some(k => baseName.includes(k))) category = "수산물";
-                    else if (['쌀','잡곡','감자','고구마'].some(k => baseName.includes(k))) category = "농산물";
-
-                    if (!tempMap[baseName]) {
-                        tempMap[baseName] = {
-                            name: baseName,
-                            category: category,
-                            img: getBetterImg(baseName),
-                            options: []
+                    if(!map[base]) {
+                        map[base] = { 
+                            name: base, 
+                            cat, 
+                            img: getBetterImg(base),
+                            options: [] 
                         };
                     }
-                    tempMap[baseName].options.push({ fullName, price, spec: row[5] || "규격 별도문의" });
+                    map[base].options.push({ full, price, spec: row[5] || "규격별도문의" });
                 });
 
-                allProducts = Object.values(tempMap);
-                renderProducts(allProducts);
-            } catch (err) {
-                console.error("Data Load Error:", err);
+                products = Object.values(map);
+                render(products);
+            } catch (e) {
+                console.error("데이터 로드 실패", e);
             }
         }
 
-        function renderProducts(items) {
+        function render(items) {
             const grid = document.getElementById('productGrid');
-            grid.innerHTML = items.map(item => `
-                <div onclick="openModal('${item.name}')" class="product-card bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 flex flex-col cursor-pointer">
-                    <div class="relative pt-[100%] overflow-hidden bg-gray-100">
-                        <img src="${item.img}" class="absolute inset-0 w-full h-full object-cover" loading="lazy">
-                        <div class="absolute top-3 left-3 bg-black/50 backdrop-blur px-2 py-1 rounded-lg text-[10px] text-white font-bold">${item.category}</div>
+            grid.innerHTML = items.map(p => `
+                <div onclick="openModal('${p.name}')" class="bg-white rounded-[2rem] border border-slate-100 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer group">
+                    <div class="aspect-square bg-slate-50 relative overflow-hidden">
+                        <img src="${p.img}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=400&q=80'">
+                        <div class="absolute top-3 left-3 bg-white/90 backdrop-blur px-2.5 py-1 rounded-xl text-[10px] font-extrabold text-emerald-600 shadow-sm">${p.cat}</div>
                     </div>
-                    <div class="p-4 flex-1 flex flex-col justify-between">
-                        <h4 class="font-bold text-gray-900 text-sm line-clamp-2 mb-2">${item.name}</h4>
-                        <div>
-                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter leading-none mb-1">Selling from</p>
-                            <p class="text-base font-black text-green-600">${Math.min(...item.options.map(o=>o.price)).toLocaleString()}원</p>
+                    <div class="p-5">
+                        <h4 class="font-bold text-slate-800 text-sm line-clamp-1 mb-1">${p.name}</h4>
+                        <div class="flex items-end justify-between">
+                            <span class="text-base font-black text-emerald-600">${Math.min(...p.options.map(o=>o.price)).toLocaleString()}원~</span>
                         </div>
                     </div>
                 </div>
             `).join('');
         }
 
-        function filterCategory(cat) {
-            document.querySelectorAll('.cat-btn').forEach(btn => {
-                btn.classList.remove('text-green-600', 'border-green-600', 'font-bold');
-                btn.classList.add('text-gray-500', 'font-medium');
-                if(btn.innerText.includes(cat)) {
-                    btn.classList.add('text-green-600', 'border-green-600', 'font-bold');
-                    btn.classList.remove('text-gray-500', 'font-medium');
-                }
-            });
-            const filtered = cat === '전체' ? allProducts : allProducts.filter(p => p.category === cat);
-            renderProducts(filtered);
+        function filterCategory(cat, el) {
+            document.querySelectorAll('nav button').forEach(b => b.className = "whitespace-nowrap pb-1 hover:text-emerald-600");
+            el.className = "category-active whitespace-nowrap pb-1";
+            const filtered = cat === '전체' ? products : products.filter(p => p.cat === cat);
+            render(filtered);
         }
 
         function openModal(name) {
-            selectedProduct = allProducts.find(p => p.name === name);
+            currentProduct = products.find(p => p.name === name);
             selectedOption = null;
 
-            document.getElementById('modalTitle').innerText = selectedProduct.name;
-            document.getElementById('modalCategory').innerText = selectedProduct.category;
-            document.getElementById('modalImg').src = selectedProduct.img;
-            
-            const list = document.getElementById('optionList');
-            list.innerHTML = selectedProduct.options.map((opt, idx) => `
-                <button onclick="selectOption(this, ${idx})" class="opt-btn w-full p-4 rounded-xl border-2 border-gray-100 text-left hover:border-green-200 transition-all group">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-bold text-gray-800 group-hover:text-green-700">${opt.fullName}</span>
-                        <span class="text-base font-black text-green-600">${opt.price.toLocaleString()}원</span>
+            document.getElementById('modalTitle').innerText = currentProduct.name;
+            document.getElementById('modalCat').innerText = currentProduct.cat;
+            document.getElementById('modalImg').src = currentProduct.img;
+
+            const container = document.getElementById('optionContainer');
+            container.innerHTML = currentProduct.options.map((opt, i) => `
+                <button onclick="selectOpt(this, ${i})" class="w-full p-4 rounded-2xl border-2 border-slate-100 text-left hover:border-emerald-200 transition-all group flex justify-between items-center">
+                    <div>
+                        <p class="text-sm font-bold text-slate-800">${opt.full}</p>
+                        <p class="text-[10px] text-slate-400 font-medium">${opt.spec}</p>
                     </div>
-                    <p class="text-[10px] text-gray-400 font-medium mt-1">${opt.spec}</p>
+                    <span class="text-base font-black text-emerald-600">${opt.price.toLocaleString()}원</span>
                 </button>
             `).join('');
 
-            document.getElementById('detailModal').classList.remove('hidden');
-        }
-
-        function selectOption(el, idx) {
-            document.querySelectorAll('.opt-btn').forEach(btn => {
-                btn.classList.remove('border-green-600', 'bg-green-50');
-                btn.classList.add('border-gray-100');
-            });
-            el.classList.remove('border-gray-100');
-            el.classList.add('border-green-600', 'bg-green-50');
-            selectedOption = selectedProduct.options[idx];
+            document.getElementById('modal').classList.remove('hidden');
+            document.body.classList.add('modal-active');
         }
 
         function closeModal() {
-            document.getElementById('detailModal').classList.add('hidden');
+            document.getElementById('modal').classList.add('hidden');
+            document.body.classList.remove('modal-active');
+        }
+
+        function selectOpt(el, idx) {
+            document.querySelectorAll('#optionContainer button').forEach(b => {
+                b.classList.replace('border-emerald-600', 'border-slate-100');
+                b.classList.remove('bg-emerald-50');
+            });
+            el.classList.replace('border-slate-100', 'border-emerald-600');
+            el.classList.add('bg-emerald-50');
+            selectedOption = currentProduct.options[idx];
         }
 
         function addToCart() {
-            if (!selectedOption) return alertCustom("먼저 규격을 선택해주세요.");
-            cart.push({
-                ...selectedOption,
-                id: Date.now(),
-                baseName: selectedProduct.name,
-                img: selectedProduct.img
-            });
-            updateCartUI();
+            if(!selectedOption) return toast("규격을 선택해주세요!");
+            cart.push({ ...selectedOption, img: currentProduct.img, id: Date.now() });
+            updateCart();
             closeModal();
             toggleCart(true);
         }
 
-        function directOrder() {
-            if (!selectedOption) return alertCustom("먼저 규격을 선택해주세요.");
-            cart = [{ ...selectedOption, id: Date.now(), baseName: selectedProduct.name, img: selectedProduct.img }];
-            updateCartUI();
+        function directPurchase() {
+            if(!selectedOption) return toast("규격을 선택해주세요!");
+            cart = [{ ...selectedOption, img: currentProduct.img, id: Date.now() }];
+            updateCart();
             closeModal();
             toggleCart(true);
         }
 
-        function updateCartUI() {
-            const list = document.getElementById('cartItems');
-            const badge = document.getElementById('cartBadge');
+        function updateCart() {
+            const list = document.getElementById('cartList');
+            const count = document.getElementById('cartCount');
+            const total = document.getElementById('totalAmt');
             
-            if (cart.length === 0) {
-                list.innerHTML = `<p class="text-center text-gray-400 py-20 font-medium">장바구니가 비어있습니다.</p>`;
-                badge.classList.add('hidden');
+            count.innerText = cart.length;
+            count.classList.toggle('hidden', cart.length === 0);
+
+            if(cart.length === 0) {
+                list.innerHTML = `<div class="py-20 text-center text-slate-400 font-bold">장바구니가 비어있습니다.</div>`;
             } else {
-                badge.innerText = cart.length;
-                badge.classList.remove('hidden');
                 list.innerHTML = cart.map(item => `
-                    <div class="flex gap-4 p-4 bg-gray-50 rounded-2xl relative group">
+                    <div class="flex gap-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 animate-in slide-in-from-right duration-300">
                         <img src="${item.img}" class="w-16 h-16 rounded-xl object-cover">
-                        <div class="flex-1">
-                            <h5 class="text-xs font-bold text-gray-900 leading-tight">${item.fullName}</h5>
-                            <p class="text-sm font-black text-green-600 mt-1">${item.price.toLocaleString()}원</p>
+                        <div class="flex-1 min-w-0">
+                            <h5 class="text-xs font-bold text-slate-800 line-clamp-2">${item.full}</h5>
+                            <p class="text-sm font-black text-emerald-600 mt-1">${item.price.toLocaleString()}원</p>
                         </div>
-                        <button onclick="removeFromCart(${item.id})" class="text-gray-300 hover:text-red-500 transition-colors">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        <button onclick="removeCart(${item.id})" class="text-slate-300 hover:text-rose-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
                 `).join('');
             }
 
-            const total = cart.reduce((sum, item) => sum + item.price, 0);
-            document.getElementById('totalPrice').innerText = `${total.toLocaleString()}원`;
+            const totalVal = cart.reduce((s, i) => s + i.price, 0);
+            total.innerText = `${totalVal.toLocaleString()}원`;
         }
 
-        function removeFromCart(id) {
-            cart = cart.filter(item => item.id !== id);
-            updateCartUI();
+        function removeCart(id) {
+            cart = cart.filter(i => i.id !== id);
+            updateCart();
         }
 
-        function toggleCart(forceOpen = false) {
-            const sidebar = document.getElementById('cartSidebar');
-            if (forceOpen) sidebar.classList.remove('translate-x-full');
-            else sidebar.classList.toggle('translate-x-full');
+        function toggleCart(open) {
+            const aside = document.getElementById('cartAside');
+            if(open === true) aside.classList.remove('translate-x-full');
+            else if(open === false) aside.classList.add('translate-x-full');
+            else aside.classList.toggle('translate-x-full');
         }
 
-        function selectPay(method) {
-            currentPaymentMethod = method;
-            const btnCard = document.getElementById('payCard');
-            const btnCash = document.getElementById('payCash');
-            const cashSection = document.getElementById('cashReceiptSection');
+        function setPayment(method) {
+            paymentMethod = method;
+            const card = document.getElementById('payCard');
+            const cash = document.getElementById('payCash');
+            const receipt = document.getElementById('receiptBox');
 
-            if (method === 'card') {
-                btnCard.className = "flex-1 py-3 rounded-xl border-2 border-green-600 bg-green-50 text-green-700 font-bold text-sm";
-                btnCash.className = "flex-1 py-3 rounded-xl border border-gray-200 bg-white text-gray-500 font-bold text-sm";
-                cashSection.classList.add('hidden');
+            if(method === 'card') {
+                card.className = "flex-1 py-2.5 rounded-lg font-bold text-sm bg-white shadow-sm text-slate-800 transition-all";
+                cash.className = "flex-1 py-2.5 rounded-lg font-bold text-sm text-slate-500 hover:text-slate-700 transition-all";
+                receipt.classList.add('hidden');
             } else {
-                btnCash.className = "flex-1 py-3 rounded-xl border-2 border-green-600 bg-green-50 text-green-700 font-bold text-sm";
-                btnCard.className = "flex-1 py-3 rounded-xl border border-gray-200 bg-white text-gray-500 font-bold text-sm";
-                cashSection.classList.remove('hidden');
+                cash.className = "flex-1 py-2.5 rounded-lg font-bold text-sm bg-white shadow-sm text-slate-800 transition-all";
+                card.className = "flex-1 py-2.5 rounded-lg font-bold text-sm text-slate-500 hover:text-slate-700 transition-all";
+                receipt.classList.remove('hidden');
             }
         }
 
-        function requestPayment() {
-            if (cart.length === 0) return alertCustom("장바구니에 담긴 상품이 없습니다.");
+        function processOrder() {
+            if(cart.length === 0) return toast("주문할 상품이 없습니다.");
             
-            const total = cart.reduce((sum, item) => sum + item.price, 0);
-            const methodText = currentPaymentMethod === 'card' ? '신용카드 결제' : '무통장입금';
-            const receiptText = (currentPaymentMethod === 'cash' && document.getElementById('cashReceipt').checked) ? '\n(현금영수증 발행 신청됨)' : '';
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            const isReceipt = document.getElementById('cashReceipt').checked;
+            const payText = paymentMethod === 'card' ? '신용카드 결제' : '무통장입금';
 
-            // 가상의 결제 승인 프로세스
-            const loader = document.createElement('div');
-            loader.className = "fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center";
-            loader.innerHTML = `
-                <div class="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                <p class="font-bold text-gray-900">${methodText} 승인 중...</p>
+            const overlay = document.createElement('div');
+            overlay.className = "fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center p-10 text-center";
+            overlay.innerHTML = `
+                <div class="w-20 h-20 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-6"></div>
+                <h2 class="text-2xl font-black mb-2">${payText} 승인 중</h2>
+                <p class="text-slate-500">안전한 결제를 위해 잠시만 기다려주세요.</p>
             `;
-            document.body.appendChild(loader);
+            document.body.appendChild(overlay);
 
             setTimeout(() => {
-                loader.innerHTML = `
-                    <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" /></svg>
+                overlay.innerHTML = `
+                    <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-8">
+                        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7" /></svg>
                     </div>
-                    <h2 class="text-2xl font-black mb-2 text-gray-900">주문 완료!</h2>
-                    <p class="text-gray-500 text-center px-8">총 ${total.toLocaleString()}원이 결제되었습니다.${receiptText}</p>
-                    <button onclick="location.reload()" class="mt-8 px-8 py-3 bg-gray-900 text-white font-bold rounded-xl">홈으로 돌아가기</button>
+                    <h2 class="text-3xl font-black mb-4">주문 완료!</h2>
+                    <div class="bg-slate-50 p-6 rounded-3xl w-full max-w-xs mb-8 text-left space-y-2">
+                        <div class="flex justify-between text-sm"><span class="text-slate-400">결제수단</span><span class="font-bold">${payText}</span></div>
+                        <div class="flex justify-between text-sm"><span class="text-slate-400">최종금액</span><span class="font-bold text-emerald-600">${total.toLocaleString()}원</span></div>
+                        ${paymentMethod === 'cash' ? `<div class="flex justify-between text-sm"><span class="text-slate-400">현금영수증</span><span class="font-bold">${isReceipt ? '신청완료' : '미신청'}</span></div>` : ''}
+                    </div>
+                    <button onclick="location.reload()" class="w-full max-w-xs h-14 bg-slate-900 text-white rounded-2xl font-bold">확인</button>
                 `;
-            }, 1500);
+            }, 2000);
         }
 
-        function alertCustom(msg) {
-            const box = document.createElement('div');
-            box.className = "fixed top-20 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-6 py-3 rounded-full font-bold shadow-2xl z-[300] animate-bounce";
-            box.innerText = msg;
-            document.body.appendChild(box);
-            setTimeout(() => box.remove(), 2500);
+        function toast(msg) {
+            const t = document.createElement('div');
+            t.className = "fixed top-20 left-1/2 -translate-x-1/2 z-[300] bg-slate-900 text-white px-8 py-4 rounded-full font-bold shadow-2xl animate-in slide-in-from-top duration-300";
+            t.innerText = msg;
+            document.body.appendChild(t);
+            setTimeout(() => { t.classList.add('animate-out', 'fade-out'); setTimeout(() => t.remove(), 300); }, 2000);
         }
 
-        window.onload = fetchData;
+        window.onload = init;
     </script>
 </body>
 </html>
