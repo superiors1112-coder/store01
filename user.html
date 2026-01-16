@@ -2,7 +2,6 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    # main 혹은 master 브랜치에 푸시될 때 모두 실행되도록 수정
     branches: ["main", "master"] 
   workflow_dispatch:
 
@@ -25,22 +24,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build
-        run: npm run build
-
+      # 빌드 과정 없이 현재 루트 폴더의 HTML 파일들을 그대로 배포하도록 수정
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist' # Vite 빌드 결과물 폴더
+          path: '.' # 현재 폴더 전체를 업로드 (dist 대신)
 
       - name: Deploy to GitHub Pages
         id: deployment
