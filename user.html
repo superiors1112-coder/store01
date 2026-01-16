@@ -78,8 +78,8 @@
     </main>
 
     <script>
-        // 구글 스프레드시트 JSON 변환 URL (공개 상태여야 함)
-        const SPREADSHEET_ID = '1W94T7cHWt2ZDsXYmWLixcEDE3qxGGD0-GFg1j9dA1II';
+        // 구글 스프레드시트 ID 업데이트 (사용자가 제공한 새 주소 적용)
+        const SPREADSHEET_ID = '1vyqHs_WC3UPY7o6hvStjZ0Y4Pd-b-HTSJokY-NtwouA';
         const GID = '0';
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
 
@@ -90,6 +90,7 @@
         async function fetchProducts() {
             try {
                 const response = await fetch(CSV_URL);
+                if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.text();
                 
                 // 간단한 CSV 파서 (줄바꿈과 콤마 기준)
@@ -97,8 +98,7 @@
                 
                 allProducts = rows.map(row => {
                     const cols = row.split(',');
-                    // 스프레드시트 열 순서에 맞춰 매핑 (순번, 상품, 디자인파일, 품명, 공급가 등)
-                    // 현재 시트 구조에 최적화: 4번째 열(품명), 5번째 열(공급가) 등
+                    // 현재 시트 구조 예측 매핑: 4번째 열(품명), 5번째 열(공급가)
                     const name = cols[3]?.replace(/"/g, '') || cols[1]?.replace(/"/g, '') || "상품명 정보 없음";
                     const price = cols[4] ? parseInt(cols[4].replace(/[^0-9]/g, '')).toLocaleString() : "별도문의";
                     const desc = cols[10]?.replace(/"/g, '') || "";
@@ -111,21 +111,33 @@
                 document.getElementById('productCount').innerText = `총 ${allProducts.length}개의 상품이 등록되어 있습니다.`;
             } catch (error) {
                 console.error("데이터 로드 실패:", error);
-                document.getElementById('productGrid').innerHTML = '<p class="col-span-full text-center py-20 text-slate-400 font-bold">데이터를 불러오지 못했습니다. 스프레드시트의 공유 설정을 확인해주세요.</p>';
+                document.getElementById('productGrid').innerHTML = `
+                    <div class="col-span-full text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300">
+                        <p class="text-slate-500 font-bold mb-2">데이터를 불러오지 못했습니다.</p>
+                        <p class="text-xs text-slate-400">1. 스프레드시트 공유 설정이 '링크가 있는 모든 사용자'인지 확인해 주세요.<br>
+                        2. '웹에 게시' 설정이 되어 있는지 확인해 주세요.</p>
+                    </div>
+                `;
+                document.getElementById('productCount').innerText = `연동 오류 발생`;
             }
         }
 
         // 카테고리 추론 로직
         function inferCategory(name, desc) {
-            if (name.includes('세트') || name.includes('선물')) return '선물세트';
-            if (name.includes('전복') || name.includes('굴비') || name.includes('연어') || name.includes('갈치')) return '수산';
-            if (name.includes('사과') || name.includes('배') || name.includes('망고') || name.includes('딸기') || name.includes('체리')) return '과일';
+            const combined = (name + desc).toLowerCase();
+            if (combined.includes('세트') || combined.includes('선물')) return '선물세트';
+            if (combined.includes('전복') || combined.includes('굴비') || combined.includes('연어') || combined.includes('갈치') || combined.includes('고등어')) return '수산';
+            if (combined.includes('사과') || combined.includes('배') || combined.includes('망고') || combined.includes('딸기') || combined.includes('체리') || combined.includes('과일')) return '과일';
             return '기타';
         }
 
         // 2. 상품 렌더링
         function renderProducts(products) {
             const grid = document.getElementById('productGrid');
+            if (products.length === 0) {
+                grid.innerHTML = '<p class="col-span-full text-center py-20 text-slate-400 font-bold">검색 결과가 없습니다.</p>';
+                return;
+            }
             grid.innerHTML = products.map(p => `
                 <div class="bg-white rounded-3xl p-4 border border-slate-100 product-item flex flex-col justify-between">
                     <div>
