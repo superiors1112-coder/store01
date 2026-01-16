@@ -1,399 +1,46 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Fresh Direct - 거래처 전용몰</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700;900&display=swap');
-        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .modal-bg { background-color: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); }
-        .active-category { background-color: #16a34a !important; color: white !important; }
-        .product-img { object-fit: cover; width: 100%; height: 100%; transition: transform 0.4s ease; }
-        .group:hover .product-img { transform: scale(1.08); }
-        .option-selected { border-color: #16a34a !important; background-color: #f0fdf4; color: #16a34a; }
-    </style>
-</head>
-<body class="pb-24">
+name: Deploy to GitHub Pages
 
-    <!-- 상단 네비게이션 -->
-    <nav class="bg-white/80 backdrop-blur-md px-4 md:px-8 py-4 flex justify-between items-center sticky top-0 z-50 shadow-sm border-b border-slate-100">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="renderProducts('전체')">
-            <div class="w-9 h-9 bg-green-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-green-100">F</div>
-            <span class="font-black text-xl tracking-tight text-slate-800">Fresh<span class="text-green-600">Direct</span></span>
-        </div>
-        
-        <div class="flex items-center gap-3">
-            <div class="relative hidden md:block">
-                <input type="text" id="searchInput" oninput="handleSearch()" placeholder="상품명 또는 거래처(그린컴퍼니/모티스템) 검색" class="bg-slate-100 border-none rounded-full px-4 py-2 text-xs w-64 focus:ring-2 focus:ring-green-500 transition-all outline-none">
-            </div>
-            <button class="text-xs font-bold text-slate-500">로그인</button>
-            <button onclick="openSignupModal()" class="text-xs font-black bg-slate-800 text-white px-4 py-2 rounded-full hover:bg-slate-700 transition-all shadow-md">회원가입</button>
-        </div>
-    </nav>
+on:
+  push:
+    branches: ["main"] # 혹은 "master" (대표님 브랜치 이름 확인)
+  workflow_dispatch:
 
-    <!-- 메인 컨텐츠 -->
-    <main class="max-w-6xl mx-auto px-4">
-        
-        <!-- 프로모션 배너 -->
-        <section id="hero-banner" class="mt-6">
-            <div class="bg-gradient-to-br from-green-600 to-emerald-800 rounded-[32px] p-8 text-white relative overflow-hidden shadow-2xl shadow-green-100">
-                <div class="relative z-10">
-                    <span class="bg-white/20 backdrop-blur-sm text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest mb-4 inline-block border border-white/20">Real-time Inventory</span>
-                    <h2 class="text-3xl md:text-4xl font-black leading-tight mb-4">
-                        산지 직송 상품<br>
-                        옵션별 실시간 단가 적용
-                    </h2>
-                    <p class="text-white/80 text-sm font-medium mb-6">시트 데이터 기반 20% 마진이 적용된 [그린컴퍼니/모티스템] 공급가입니다.</p>
-                </div>
-                <div class="absolute -right-10 -bottom-10 text-[180px] font-black opacity-10 italic select-none">FRESH</div>
-            </div>
-        </section>
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
-        <!-- 카테고리 퀵 메뉴 -->
-        <section class="mt-10 overflow-x-auto no-scrollbar py-2">
-            <div id="category-list" class="flex gap-4 min-w-max">
-                <!-- JS 렌더링 -->
-            </div>
-        </section>
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
-        <!-- 상품 리스트 섹션 -->
-        <section class="mt-12">
-            <div class="flex justify-between items-end mb-6">
-                <div>
-                    <span id="category-label" class="text-green-600 font-black text-[10px] tracking-widest uppercase mb-1 block">ALL PRODUCTS</span>
-                    <h3 id="current-category-name" class="text-2xl font-black text-slate-800 tracking-tight">전체 상품</h3>
-                </div>
-                <div class="text-xs font-bold text-slate-400">총 <span id="product-count" class="text-green-600">0</span>개 품목</div>
-            </div>
-            
-            <div id="product-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                <!-- JS 렌더링 -->
-            </div>
-        </section>
-    </main>
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    <!-- 상품 상세 옵션 모달 -->
-    <div id="productModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 modal-bg">
-        <div class="bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in duration-200">
-            <div class="relative h-64 bg-slate-100">
-                <img id="modalImg" src="" class="w-full h-full object-cover">
-                <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-white/50 backdrop-blur-md w-10 h-10 rounded-full flex items-center justify-center text-slate-800 font-bold">✕</button>
-            </div>
-            <div class="p-8">
-                <div class="mb-6">
-                    <span id="modalPartner" class="text-[10px] font-black bg-indigo-100 px-2 py-1 rounded text-indigo-600 mb-2 inline-block uppercase tracking-tighter">파트너사</span>
-                    <h3 id="modalTitle" class="text-2xl font-black text-slate-800 tracking-tight">상품명</h3>
-                </div>
-                
-                <div class="mb-6 max-h-48 overflow-y-auto no-scrollbar">
-                    <p class="text-xs font-bold text-slate-400 mb-3">상세 규격 및 옵션 선택</p>
-                    <div id="modalOptions" class="grid grid-cols-2 gap-2">
-                        <!-- 옵션 버튼들 렌더링 -->
-                    </div>
-                </div>
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
 
-                <div class="flex justify-between items-center pt-6 border-t border-slate-100">
-                    <div>
-                        <p class="text-[10px] text-slate-400 font-bold uppercase">최종 공급가 (마진 20%)</p>
-                        <p id="modalPrice" class="text-2xl font-black text-green-600">0원</p>
-                    </div>
-                    <button class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black shadow-lg hover:bg-green-600 transition-all">장바구니 담기</button>
-                </div>
-            </div>
-        </div>
-    </div>
+      - name: Install dependencies
+        run: npm install
 
-    <!-- 회원가입 모달 -->
-    <div id="signupModal" class="fixed inset-0 z-[120] hidden flex items-center justify-center p-4 modal-bg">
-        <div class="bg-white w-full max-w-md rounded-[32px] p-8">
-            <h3 class="text-2xl font-black mb-6">거래처 회원가입</h3>
-            <div class="space-y-4">
-                <input type="text" placeholder="상호명" class="w-full bg-slate-50 border px-4 py-3 rounded-xl outline-none">
-                <input type="text" placeholder="사업자번호" class="w-full bg-slate-50 border px-4 py-3 rounded-xl outline-none">
-                <button class="w-full bg-green-600 text-white py-4 rounded-2xl font-black shadow-lg">가입 신청하기</button>
-                <button onclick="closeSignupModal()" class="w-full text-slate-400 text-sm font-bold">닫기</button>
-            </div>
-        </div>
-    </div>
+      - name: Build
+        run: npm run build
 
-    <script>
-        // 가격 계산 함수: 마진 20% 적용 + 백원 단위 절삭
-        function calculatePrice(basePrice) {
-            return Math.floor((basePrice * 1.2) / 100) * 100;
-        }
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist' # 빌드된 결과물이 담기는 폴더 확인 (Vite는 보통 dist)
 
-        // [상품 데이터 베이스 - 그린컴퍼니 / 모티스템 전 상품 업데이트]
-        const products = [
-            {
-                id: 1,
-                category: '과일류',
-                name: '칠레산 체리 (Premium)',
-                image: 'https://images.unsplash.com/photo-1528821128474-27f963b067bf?auto=format&fit=crop&q=80&w=400',
-                partner: '그린컴퍼니',
-                options: [
-                    { label: '10R - 300g (컵)', basePrice: 8500 },
-                    { label: '10R - 500g (팩)', basePrice: 13000 },
-                    { label: '10R - 1kg (봉지)', basePrice: 24000 },
-                    { label: '10R - 2.5kg (박스)', basePrice: 55000 },
-                    { label: '10R - 5kg (대박스)', basePrice: 99000 },
-                    { label: '9.5R - 500g (특상)', basePrice: 16500 },
-                    { label: '9.5R - 1kg (특상)', basePrice: 31000 },
-                    { label: '9.5R - 2.5kg (특상)', basePrice: 69000 },
-                    { label: '9R (대과) - 1kg', basePrice: 38000 }
-                ]
-            },
-            {
-                id: 2,
-                category: '과일류',
-                name: '청송 사과 (부사/가정용)',
-                image: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?auto=format&fit=crop&q=80&w=400',
-                partner: '그린컴퍼니',
-                options: [
-                    { label: '2.5kg (8-10과)', basePrice: 18000 },
-                    { label: '5kg (16-20과)', basePrice: 33000 },
-                    { label: '10kg (실속형/흠집)', basePrice: 59000 }
-                ]
-            },
-            {
-                id: 3,
-                category: '과일류',
-                name: '청송 사과 (정품/명품)',
-                image: 'https://images.unsplash.com/photo-1619546813926-a78fa6372cd2?auto=format&fit=crop&q=80&w=400',
-                partner: '그린컴퍼니',
-                options: [
-                    { label: '5kg (12-14과)', basePrice: 49500 },
-                    { label: '10kg (특대과)', basePrice: 92000 }
-                ]
-            },
-            {
-                id: 4,
-                category: '과일류',
-                name: '영암 무화과 (산지직송)',
-                image: 'https://images.unsplash.com/photo-1596435308233-0b0c26563604?auto=format&fit=crop&q=80&w=400',
-                partner: '모티스템',
-                options: [
-                    { label: '1kg (4-6과)', basePrice: 12500 },
-                    { label: '2kg (정품/상급)', basePrice: 24000 },
-                    { label: '4kg (대용량/식당용)', basePrice: 45000 }
-                ]
-            },
-            {
-                id: 5,
-                category: '채소류',
-                name: '꿀고구마 (영암/특상)',
-                image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&q=80&w=400',
-                partner: '모티스템',
-                options: [
-                    { label: '3kg (한입/긴상)', basePrice: 15000 },
-                    { label: '5kg (중과/로얄)', basePrice: 23500 },
-                    { label: '10kg (대과/식당용)', basePrice: 41000 }
-                ]
-            },
-            {
-                id: 6,
-                category: '채소류',
-                name: '무안 양파 (저장형)',
-                image: 'https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&q=80&w=400',
-                partner: '모티스템',
-                options: [
-                    { label: '3kg 망 (가정용)', basePrice: 6800 },
-                    { label: '5kg 망 (중)', basePrice: 10500 },
-                    { label: '15kg 박스 (대업체용)', basePrice: 26000 }
-                ]
-            },
-            {
-                id: 7,
-                category: '채소류',
-                name: '흙당근 (제주/겨울)',
-                image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&q=80&w=400',
-                partner: '모티스템',
-                options: [
-                    { label: '1kg 봉지', basePrice: 3900 },
-                    { label: '3kg 박스', basePrice: 11000 },
-                    { label: '10kg 대용량(박스)', basePrice: 31000 }
-                ]
-            },
-            {
-                id: 8,
-                category: '농수산물',
-                name: '완도 전복 (산지활어)',
-                image: 'https://images.unsplash.com/photo-1621263764200-e1444c542c3d?auto=format&fit=crop&q=80&w=400',
-                partner: '모티스템',
-                options: [
-                    { label: '1kg (15-20미/소)', basePrice: 33500 },
-                    { label: '1kg (10-12미/중)', basePrice: 48000 },
-                    { label: '1kg (7-8미/특대)', basePrice: 71000 }
-                ]
-            },
-            {
-                id: 9,
-                category: '과일류',
-                name: '제주 노지 감귤 (고당도)',
-                image: 'https://images.unsplash.com/photo-1557800636-894a64c1696f?auto=format&fit=crop&q=80&w=400',
-                partner: '그린컴퍼니',
-                options: [
-                    { label: '5kg (S/M 로얄과)', basePrice: 16500 },
-                    { label: '10kg (L 대과)', basePrice: 26500 }
-                ]
-            },
-            {
-                id: 10,
-                category: '과일류',
-                name: '샤인머스캣 (당도보장)',
-                image: 'https://images.unsplash.com/photo-1537640538966-79f369b41e8f?auto=format&fit=crop&q=80&w=400',
-                partner: '그린컴퍼니',
-                options: [
-                    { label: '1.5kg (2수/팩)', basePrice: 24000 },
-                    { label: '2kg (3-4수/박스)', basePrice: 31000 },
-                    { label: '4kg (박스/특상)', basePrice: 56000 }
-                ]
-            },
-            {
-                id: 11,
-                category: '채소류',
-                name: '대파 (국산/세척)',
-                image: 'https://images.unsplash.com/photo-1518977676601-b53f02bad67b?auto=format&fit=crop&q=80&w=400',
-                partner: '모티스템',
-                options: [
-                    { label: '1단 (500g)', basePrice: 3200 },
-                    { label: '5단 (박스)', basePrice: 14500 }
-                ]
-            },
-            {
-                id: 12,
-                category: '과일류',
-                name: '대추방울토마토',
-                image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&q=80&w=400',
-                partner: '그린컴퍼니',
-                options: [
-                    { label: '750g (팩)', basePrice: 8500 },
-                    { label: '3kg (벌크)', basePrice: 28000 }
-                ]
-            }
-        ];
-
-        const categories = ['전체', '과일류', '채소류', '농수산물'];
-        let currentCategory = '전체';
-        let searchQuery = '';
-        let selectedProduct = null;
-        let selectedOptionIndex = 0;
-
-        function getEmoji(cat) {
-            const icons = { '전체': '📦', '과일류': '🍎', '채소류': '🥬', '농수산물': '🐟' };
-            return icons[cat] || '📍';
-        }
-
-        function renderCategories() {
-            const list = document.getElementById('category-list');
-            list.innerHTML = categories.map(cat => `
-                <div onclick="renderProducts('${cat}')" class="category-item flex flex-col items-center gap-2 group cursor-pointer">
-                    <div class="w-16 h-16 ${cat === currentCategory ? 'active-category' : 'bg-white'} rounded-2xl flex items-center justify-center text-2xl shadow-sm border border-slate-100 group-hover:bg-green-50 transition-all">
-                        ${getEmoji(cat)}
-                    </div>
-                    <span class="text-[11px] font-bold ${cat === currentCategory ? 'text-green-600' : 'text-slate-600'}">${cat}</span>
-                </div>
-            `).join('');
-        }
-
-        function handleSearch() {
-            searchQuery = document.getElementById('searchInput').value.toLowerCase();
-            renderProducts(currentCategory);
-        }
-
-        function renderProducts(category) {
-            currentCategory = category;
-            renderCategories();
-
-            const grid = document.getElementById('product-grid');
-            const countDisplay = document.getElementById('product-count');
-            const title = document.getElementById('current-category-name');
-            const label = document.getElementById('category-label');
-
-            let filtered = products.filter(p => {
-                const matchCategory = category === '전체' || p.category === category;
-                const matchSearch = p.name.toLowerCase().includes(searchQuery) || p.partner.toLowerCase().includes(searchQuery);
-                return matchCategory && matchSearch;
-            });
-
-            countDisplay.innerText = filtered.length;
-            title.innerText = searchQuery ? `'${searchQuery}' 검색 결과` : (category === '전체' ? '전체 상품' : category);
-            label.innerText = category.toUpperCase();
-
-            if(filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-20 text-center text-slate-400 font-bold">검색 결과가 없습니다.</div>`;
-            } else {
-                grid.innerHTML = filtered.map(p => {
-                    const minPrice = calculatePrice(p.options[0].basePrice);
-                    return `
-                        <div onclick="openProductModal(${p.id})" class="bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all group flex flex-col cursor-pointer animate-in fade-in slide-in-from-bottom-2 duration-300">
-                            <div class="relative w-full aspect-square bg-slate-100 overflow-hidden">
-                                <img src="${p.image}" alt="${p.name}" class="product-img" onerror="this.src='https://via.placeholder.com/400x400?text=No+Image'">
-                                <div class="absolute top-3 left-3 bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-lg text-[10px] font-black text-indigo-600 shadow-sm border border-slate-100">${p.partner}</div>
-                            </div>
-                            <div class="p-4 flex flex-col flex-1">
-                                <h5 class="font-bold text-slate-800 text-sm mb-1 leading-snug">${p.name}</h5>
-                                <p class="text-[10px] text-slate-400 font-bold mb-3">${p.options.length}개의 옵션 선택</p>
-                                <div class="mt-auto flex justify-between items-center">
-                                    <p class="text-green-600 font-black text-base">${minPrice.toLocaleString()}원~</p>
-                                    <div class="w-8 h-8 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-            
-            document.getElementById('hero-banner').style.display = (category === '전체' && !searchQuery) ? 'block' : 'none';
-        }
-
-        function openProductModal(id) {
-            selectedProduct = products.find(p => p.id === id);
-            selectedOptionIndex = 0;
-            
-            document.getElementById('modalImg').src = selectedProduct.image;
-            document.getElementById('modalTitle').innerText = selectedProduct.name;
-            document.getElementById('modalPartner').innerText = selectedProduct.partner;
-            
-            renderOptions();
-            updateModalPrice();
-            
-            document.getElementById('productModal').classList.remove('hidden');
-        }
-
-        function renderOptions() {
-            const container = document.getElementById('modalOptions');
-            container.innerHTML = selectedProduct.options.map((opt, idx) => `
-                <button onclick="selectOption(${idx})" class="text-[11px] font-bold py-3 px-2 border-2 rounded-xl transition-all ${idx === selectedOptionIndex ? 'option-selected' : 'border-slate-100 text-slate-500 hover:border-slate-300'}">
-                    ${opt.label}
-                </button>
-            `).join('');
-        }
-
-        function selectOption(idx) {
-            selectedOptionIndex = idx;
-            renderOptions();
-            updateModalPrice();
-        }
-
-        function updateModalPrice() {
-            const base = selectedProduct.options[selectedOptionIndex].basePrice;
-            const finalPrice = calculatePrice(base);
-            document.getElementById('modalPrice').innerText = finalPrice.toLocaleString() + '원';
-        }
-
-        function closeProductModal() {
-            document.getElementById('productModal').classList.add('hidden');
-        }
-
-        function openSignupModal() { document.getElementById('signupModal').classList.remove('hidden'); }
-        function closeSignupModal() { document.getElementById('signupModal').classList.add('hidden'); }
-
-        window.onload = () => renderProducts('전체');
-    </script>
-</body>
-</html>
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
