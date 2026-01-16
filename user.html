@@ -4,196 +4,286 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Fresh Direct - 전상품 통합 주문</title>
+    <title>Fresh Direct - 이미지 연동 주문 페이지</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f3f4f6; }
-        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
-        .product-item { transition: all 0.2s ease; }
-        .product-item:hover { transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }
-        .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f3f4f6; color: #1e293b; }
+        
+        .product-card { 
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        .product-card:hover { 
+            transform: translateY(-8px); 
+            box-shadow: 0 25px 50px -12px rgba(79, 70, 229, 0.12); 
+        }
+
+        .img-wrapper { 
+            position: relative;
+            aspect-ratio: 1 / 1; 
+            overflow: hidden; 
+            border-radius: 1.5rem;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .product-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+        
+        .product-card:hover .product-img {
+            transform: scale(1.08);
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* 모달 스타일 */
+        #optionModal { transition: opacity 0.3s ease; }
+        #modalContent { transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        /* 로딩 애니메이션 */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
     </style>
 </head>
 <body class="pb-24">
-    <!-- 상단 고정 헤더 -->
     <header class="bg-white/90 sticky top-0 z-50 border-b border-slate-200 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="flex flex-col md:flex-row md:items-center justify-between py-4 gap-4">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <h1 class="text-2xl font-black text-indigo-600 tracking-tighter italic">FRESH DIRECT</h1>
-                    <span class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded">PARTNER ONLY</span>
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                    </div>
+                    <h1 class="text-xl font-black text-slate-900 tracking-tighter">FRESH DIRECT</h1>
                 </div>
                 
-                <!-- 검색창 -->
                 <div class="relative flex-1 max-w-md">
-                    <input type="text" id="searchInput" placeholder="700여 개 상품 중 검색..." 
-                        class="w-full bg-slate-100 border-none rounded-2xl py-2.5 pl-11 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
-                    <div class="absolute left-4 top-3 text-slate-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <input type="text" id="searchInput" placeholder="무엇을 찾으시나요?" 
+                        class="w-full bg-slate-100 border-none rounded-2xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 transition-all">
+                    <div class="absolute left-3 top-3 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                     </div>
                 </div>
             </div>
-
-            <!-- 카테고리 탭 -->
-            <div class="flex gap-6 overflow-x-auto no-scrollbar pb-2 text-sm font-bold text-slate-400">
-                <button onclick="filterCategory('전체')" class="category-btn text-indigo-600 border-b-2 border-indigo-600 pb-2 whitespace-nowrap">전체 상품</button>
-                <button onclick="filterCategory('선물세트')" class="category-btn hover:text-slate-600 pb-2 whitespace-nowrap">🎁 설 선물세트</button>
-                <button onclick="filterCategory('과일')" class="category-btn hover:text-slate-600 pb-2 whitespace-nowrap">🍎 청과/곡물</button>
-                <button onclick="filterCategory('수산')" class="category-btn hover:text-slate-600 pb-2 whitespace-nowrap">🌊 수산/건어물</button>
-                <button onclick="filterCategory('기타')" class="category-btn hover:text-slate-600 pb-2 whitespace-nowrap">✨ 기타 신선식품</button>
-            </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-8">
-        <!-- 알림바 -->
-        <div class="bg-indigo-600 rounded-3xl p-6 mb-8 text-white flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg shadow-indigo-100">
-            <div>
-                <h2 class="text-xl font-black italic">DATABASE UPDATED</h2>
-                <p class="text-indigo-100 text-xs opacity-80 mt-1">스프레드시트 내 700여 개 전 상품 정보가 동기화되었습니다.</p>
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+                <h2 id="productCount" class="text-xs font-bold text-slate-400 uppercase tracking-widest">실시간 연동 중...</h2>
             </div>
-            <div class="flex gap-2">
-                <span class="text-[10px] bg-white/20 px-3 py-1.5 rounded-full font-bold">오전 09:30 발주마감</span>
-                <span class="text-[10px] bg-white/20 px-3 py-1.5 rounded-full font-bold">전국 익일배송</span>
-            </div>
+            <div id="lastUpdated" class="text-[10px] font-bold text-slate-400">Connecting...</div>
         </div>
 
-        <!-- 상품 카운트 및 로딩 표시 -->
-        <div id="statusInfo" class="mb-6 flex items-center justify-between text-xs font-bold text-slate-500 px-2">
-            <span id="productCount">데이터 로딩 중...</span>
-        </div>
-
-        <!-- 상품 그리드 -->
-        <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            <!-- 로딩 스켈레톤 -->
-            <div class="skeleton h-64 rounded-3xl"></div>
-            <div class="skeleton h-64 rounded-3xl"></div>
-            <div class="skeleton h-64 rounded-3xl"></div>
-            <div class="skeleton h-64 rounded-3xl"></div>
-            <div class="skeleton h-64 rounded-3xl"></div>
+        <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <!-- 스켈레톤 로더 -->
+            <div class="skeleton rounded-[1.5rem] aspect-square"></div>
+            <div class="skeleton rounded-[1.5rem] aspect-square"></div>
+            <div class="skeleton rounded-[1.5rem] aspect-square"></div>
+            <div class="skeleton rounded-[1.5rem] aspect-square"></div>
+            <div class="skeleton rounded-[1.5rem] aspect-square"></div>
         </div>
     </main>
 
+    <!-- 옵션 선택 모달 -->
+    <div id="optionModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div id="modalContent" class="bg-white w-full max-w-md rounded-[2.5rem] overflow-hidden shadow-2xl scale-95 opacity-0">
+            <div id="modalBody" class="p-8"></div>
+        </div>
+    </div>
+
     <script>
-        // 구글 스프레드시트 ID 업데이트 (사용자가 제공한 새 주소 적용)
         const SPREADSHEET_ID = '1vyqHs_WC3UPY7o6hvStjZ0Y4Pd-b-HTSJokY-NtwouA';
         const GID = '0';
         const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
 
-        let allProducts = [];
-        let currentFilter = '전체';
+        let groupedProducts = {};
 
-        // 1. 데이터 가져오기 (CSV 파싱)
+        function parseCSV(text) {
+            const rows = [];
+            const lines = text.split(/\r?\n/);
+            for (let line of lines) {
+                const values = [];
+                let current = "";
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') inQuotes = !inQuotes;
+                    else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = "";
+                    } else current += char;
+                }
+                values.push(current.trim());
+                rows.push(values);
+            }
+            return rows;
+        }
+
         async function fetchProducts() {
             try {
                 const response = await fetch(CSV_URL);
-                if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.text();
+                const rows = parseCSV(data);
                 
-                // 간단한 CSV 파서 (줄바꿈과 콤마 기준)
-                const rows = data.split('\n').slice(1); // 헤더 제외
-                
-                allProducts = rows.map(row => {
-                    const cols = row.split(',');
-                    // 현재 시트 구조 예측 매핑: 4번째 열(품명), 5번째 열(공급가)
-                    const name = cols[3]?.replace(/"/g, '') || cols[1]?.replace(/"/g, '') || "상품명 정보 없음";
-                    const price = cols[4] ? parseInt(cols[4].replace(/[^0-9]/g, '')).toLocaleString() : "별도문의";
-                    const desc = cols[10]?.replace(/"/g, '') || "";
-                    const category = inferCategory(name, desc);
+                const tempGrouped = {};
+
+                rows.slice(1).forEach(cols => {
+                    let rawName = cols[3] || cols[2] || "";
+                    if (!rawName) return;
+
+                    const groupName = rawName.split('(')[0].split(/[0-9]/)[0].trim();
+                    const supplyPrice = parseInt(cols[4]?.replace(/[^0-9]/g, '') || "0");
+                    if (supplyPrice === 0) return;
+
+                    const sellingPrice = Math.ceil((supplyPrice * 1.2) / 100) * 100;
                     
-                    return { name, price, desc, category, raw: row };
-                }).filter(p => p.name !== "상품명 정보 없음" && p.name.length > 2);
+                    // [수정 포인트] B열(인덱스 1) 이미지를 활용합니다.
+                    const imageUrl = cols[1] || ""; 
 
-                renderProducts(allProducts);
-                document.getElementById('productCount').innerText = `총 ${allProducts.length}개의 상품이 등록되어 있습니다.`;
+                    if (!tempGrouped[groupName]) {
+                        tempGrouped[groupName] = {
+                            mainName: groupName,
+                            image: imageUrl,
+                            category: cols[1] === imageUrl ? (cols[0] || "기타") : (cols[1] || "기타"), 
+                            options: []
+                        };
+                    }
+
+                    // 카테고리 보정: 만약 B열이 이미지 URL이라면 A열을 카테고리로 사용하도록 안전장치 추가
+                    if (imageUrl.startsWith('http')) {
+                        tempGrouped[groupName].category = cols[0] || "추천상품";
+                    }
+
+                    tempGrouped[groupName].options.push({
+                        fullName: rawName,
+                        spec: cols[5] || "규격 별도문의",
+                        price: sellingPrice
+                    });
+
+                    if (!tempGrouped[groupName].image && imageUrl.startsWith('http')) {
+                        tempGrouped[groupName].image = imageUrl;
+                    }
+                });
+
+                groupedProducts = tempGrouped;
+                document.getElementById('lastUpdated').innerText = `최종 업데이트: ${new Date().toLocaleTimeString()}`;
+                renderGrid(Object.values(groupedProducts));
             } catch (error) {
-                console.error("데이터 로드 실패:", error);
-                document.getElementById('productGrid').innerHTML = `
-                    <div class="col-span-full text-center py-20 bg-white rounded-3xl border border-dashed border-slate-300">
-                        <p class="text-slate-500 font-bold mb-2">데이터를 불러오지 못했습니다.</p>
-                        <p class="text-xs text-slate-400">1. 스프레드시트 공유 설정이 '링크가 있는 모든 사용자'인지 확인해 주세요.<br>
-                        2. '웹에 게시' 설정이 되어 있는지 확인해 주세요.</p>
-                    </div>
-                `;
-                document.getElementById('productCount').innerText = `연동 오류 발생`;
+                console.error("Fetch error:", error);
+                document.getElementById('productCount').innerText = "데이터 로딩 실패";
             }
         }
 
-        // 카테고리 추론 로직
-        function inferCategory(name, desc) {
-            const combined = (name + desc).toLowerCase();
-            if (combined.includes('세트') || combined.includes('선물')) return '선물세트';
-            if (combined.includes('전복') || combined.includes('굴비') || combined.includes('연어') || combined.includes('갈치') || combined.includes('고등어')) return '수산';
-            if (combined.includes('사과') || combined.includes('배') || combined.includes('망고') || combined.includes('딸기') || combined.includes('체리') || combined.includes('과일')) return '과일';
-            return '기타';
-        }
-
-        // 2. 상품 렌더링
-        function renderProducts(products) {
+        function renderGrid(products) {
             const grid = document.getElementById('productGrid');
-            if (products.length === 0) {
-                grid.innerHTML = '<p class="col-span-full text-center py-20 text-slate-400 font-bold">검색 결과가 없습니다.</p>';
-                return;
-            }
-            grid.innerHTML = products.map(p => `
-                <div class="bg-white rounded-3xl p-4 border border-slate-100 product-item flex flex-col justify-between">
-                    <div>
-                        <div class="aspect-square bg-slate-50 rounded-2xl mb-4 flex items-center justify-center text-3xl opacity-40">
-                            ${getEmoji(p.category)}
-                        </div>
-                        <span class="text-[9px] font-black px-2 py-1 rounded-full bg-slate-100 text-slate-400 uppercase tracking-tighter italic">${p.category}</span>
-                        <h3 class="mt-2 font-bold text-slate-800 text-sm leading-tight h-10 overflow-hidden line-clamp-2">${p.name}</h3>
+            document.getElementById('productCount').innerText = `${products.length}개의 상품 연동 완료`;
+
+            grid.innerHTML = products.map(group => {
+                const minPrice = Math.min(...group.options.map(o => o.price));
+                
+                // B열 이미지 URL 체크
+                const displayImg = (group.image && group.image.includes('http')) 
+                    ? group.image 
+                    : `https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=400&q=80`;
+
+                return `
+                <div onclick="openModal('${group.mainName}')" class="product-card bg-white rounded-3xl p-3 flex flex-col cursor-pointer group shadow-sm border border-slate-100">
+                    <div class="img-wrapper mb-4">
+                        <img src="${displayImg}" class="product-img" alt="${group.mainName}" loading="lazy" 
+                             onerror="this.onerror=null; this.src='https://via.placeholder.com/400x400?text=${encodeURIComponent(group.mainName)}'">
                     </div>
-                    <div class="mt-4 flex items-baseline gap-1">
-                        <span class="text-indigo-600 font-black text-lg">${p.price}</span>
-                        <span class="text-[10px] font-bold text-indigo-600">원</span>
+                    <div class="px-1">
+                        <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-1">${group.category}</p>
+                        <h3 class="font-bold text-slate-800 text-sm leading-tight mb-3 line-clamp-2">${group.mainName}</h3>
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-slate-400">단가</span>
+                            <span class="text-sm font-black text-slate-900">${minPrice.toLocaleString()}원~</span>
+                        </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        function getEmoji(cat) {
-            const map = { '선물세트': '🎁', '수산': '🌊', '과일': '🍎', '기타': '📦' };
-            return map[cat] || '✨';
+        function openModal(groupName) {
+            const group = groupedProducts[groupName];
+            const modal = document.getElementById('optionModal');
+            const content = document.getElementById('modalContent');
+            const body = document.getElementById('modalBody');
+
+            const displayImg = (group.image && group.image.includes('http')) ? group.image : `https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=400&q=80`;
+
+            body.innerHTML = `
+                <div class="flex items-start justify-between mb-6">
+                    <div class="flex items-center gap-4">
+                        <img src="${displayImg}" class="w-14 h-14 rounded-2xl object-cover shadow-md border border-slate-100">
+                        <div>
+                            <p class="text-[10px] font-bold text-indigo-500 uppercase">${group.category}</p>
+                            <h2 class="text-lg font-black text-slate-900 leading-tight">${group.mainName}</h2>
+                        </div>
+                    </div>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-3 max-h-[40vh] overflow-y-auto no-scrollbar pb-2">
+                    ${group.options.map(opt => `
+                        <div class="p-4 rounded-2xl border border-slate-100 hover:border-indigo-500 hover:bg-indigo-50 transition-all cursor-pointer group/item">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-800">${opt.fullName}</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">${opt.spec}</p>
+                                </div>
+                                <p class="text-sm font-black text-indigo-600">${opt.price.toLocaleString()}원</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <button class="w-full mt-6 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all">
+                    지금 바로 발주하기
+                </button>
+            `;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => { content.classList.remove('scale-95', 'opacity-0'); }, 10);
         }
 
-        // 3. 필터 및 검색 기능
-        function filterCategory(cat) {
-            currentFilter = cat;
-            
-            // 버튼 스타일 변경
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
-                btn.classList.add('text-slate-400');
-                if (btn.innerText.includes(cat)) {
-                    btn.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
-                    btn.classList.remove('text-slate-400');
-                }
-            });
-
-            applyFilter();
+        function closeModal() {
+            const modal = document.getElementById('optionModal');
+            const content = document.getElementById('modalContent');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
 
-        function applyFilter() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
-            const filtered = allProducts.filter(p => {
-                const matchesCat = (currentFilter === '전체' || p.category === currentFilter);
-                const matchesSearch = p.name.toLowerCase().includes(searchTerm);
-                return matchesCat && matchesSearch;
-            });
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = Object.values(groupedProducts).filter(group => 
+                group.mainName.toLowerCase().includes(term) || 
+                group.category.toLowerCase().includes(term)
+            );
+            renderGrid(filtered);
+        });
 
-            renderProducts(filtered);
-            document.getElementById('productCount').innerText = `${filtered.length}개의 상품이 검색되었습니다.`;
-        }
-
-        // 검색창 이벤트
-        document.getElementById('searchInput').addEventListener('input', applyFilter);
-
-        // 초기 실행
         window.onload = fetchProducts;
     </script>
 </body>
