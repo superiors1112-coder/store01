@@ -4,168 +4,185 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Fresh Direct - 거래처 전용</title>
+    <title>Fresh Direct - 전상품 통합 주문</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #f3f4f6; }
-        .product-card { transition: transform 0.2s; }
-        .product-card:hover { transform: translateY(-5px); }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); }
+        .product-item { transition: all 0.2s ease; }
+        .product-item:hover { transform: translateY(-3px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }
+        .skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
     </style>
 </head>
-<body class="pb-10">
-    <!-- 상단 헤더 -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-black text-indigo-600 tracking-tighter italic">FRESH DIRECT</h1>
-            <div class="flex items-center gap-4">
-                <span class="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full">거래처 전용 대시보드</span>
-                <div class="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 font-bold text-xs">대표</div>
+<body class="pb-24">
+    <!-- 상단 고정 헤더 -->
+    <header class="bg-white/90 sticky top-0 z-50 border-b border-slate-200 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between py-4 gap-4">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-2xl font-black text-indigo-600 tracking-tighter italic">FRESH DIRECT</h1>
+                    <span class="text-[10px] font-bold bg-slate-100 text-slate-500 px-2 py-1 rounded">PARTNER ONLY</span>
+                </div>
+                
+                <!-- 검색창 -->
+                <div class="relative flex-1 max-w-md">
+                    <input type="text" id="searchInput" placeholder="700여 개 상품 중 검색..." 
+                        class="w-full bg-slate-100 border-none rounded-2xl py-2.5 pl-11 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+                    <div class="absolute left-4 top-3 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 카테고리 탭 -->
+            <div class="flex gap-6 overflow-x-auto no-scrollbar pb-2 text-sm font-bold text-slate-400">
+                <button onclick="filterCategory('전체')" class="category-btn text-indigo-600 border-b-2 border-indigo-600 pb-2 whitespace-nowrap">전체 상품</button>
+                <button onclick="filterCategory('선물세트')" class="category-btn hover:text-slate-600 pb-2 whitespace-nowrap">🎁 설 선물세트</button>
+                <button onclick="filterCategory('과일')" class="category-btn hover:text-slate-600 pb-2 whitespace-nowrap">🍎 청과/곡물</button>
+                <button onclick="filterCategory('수산')" class="category-btn hover:text-slate-600 pb-2 whitespace-nowrap">🌊 수산/건어물</button>
+                <button onclick="filterCategory('기타')" class="category-btn hover:text-slate-600 pb-2 whitespace-nowrap">✨ 기타 신선식품</button>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-4 py-8">
-        <!-- 메인 배너 -->
-        <div class="bg-indigo-600 rounded-[32px] p-8 mb-12 text-white shadow-xl relative overflow-hidden">
-            <h2 class="text-3xl font-black mb-2 italic uppercase">2026 Lunar New Year</h2>
-            <p class="text-indigo-100 font-medium italic">모티스템 & 그린컴퍼니 설 명절 기획전</p>
-            <div class="absolute -right-10 -bottom-10 opacity-10 text-[120px] font-black italic select-none">FRESH</div>
-        </div>
-
-        <!-- 1. 설 명절 기획 세트 (모티스템) -->
-        <div class="mb-12">
-            <div class="flex items-center justify-between mb-6 border-b border-slate-200 pb-4">
-                <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                    <span class="text-2xl">🍎</span> 2026 설 명절 기획 세트 (모티스템)
-                </h2>
-                <span class="text-[10px] font-bold text-red-500 border border-red-200 bg-red-50 px-2 py-1 rounded">오전 09:30 발주마감</span>
+        <!-- 알림바 -->
+        <div class="bg-indigo-600 rounded-3xl p-6 mb-8 text-white flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg shadow-indigo-100">
+            <div>
+                <h2 class="text-xl font-black italic">DATABASE UPDATED</h2>
+                <p class="text-indigo-100 text-xs opacity-80 mt-1">스프레드시트 내 700여 개 전 상품 정보가 동기화되었습니다.</p>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- 상품 -->
-                <div class="bg-white rounded-3xl shadow-sm overflow-hidden product-card border border-slate-100">
-                    <div class="h-48 bg-slate-100 flex flex-col items-center justify-center text-slate-400 font-bold p-4 text-center">
-                        <span class="text-3xl mb-2">🎁</span>
-                        [프리미엄 혼합 과일세트 1호]
-                    </div>
-                    <div class="p-5">
-                        <span class="text-[10px] font-bold bg-red-100 text-red-600 px-2 py-1 rounded-full uppercase italic">Best</span>
-                        <h3 class="font-bold text-slate-800 mt-3 h-10 overflow-hidden">프리미엄 혼합 과일세트 1호</h3>
-                        <div class="flex items-baseline gap-1 mt-2">
-                            <p class="text-indigo-600 font-black text-xl">145,800</p>
-                            <span class="text-xs font-bold text-indigo-600">원</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-2 italic tracking-tight">무료배송 / 명절 스테디셀러</p>
-                    </div>
-                </div>
-                <!-- 상품 -->
-                <div class="bg-white rounded-3xl shadow-sm overflow-hidden product-card border border-slate-100">
-                    <div class="h-48 bg-slate-100 flex flex-col items-center justify-center text-slate-400 font-bold p-4 text-center">
-                        <span class="text-3xl mb-2">📦</span>
-                        [명품 사과배 세트]
-                    </div>
-                    <div class="p-5">
-                        <span class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-full uppercase italic">실속형</span>
-                        <h3 class="font-bold text-slate-800 mt-3 h-10 overflow-hidden">명품 세트 (사과/배/샤인)</h3>
-                        <div class="flex items-baseline gap-1 mt-2">
-                            <p class="text-indigo-600 font-black text-xl">88,500</p>
-                            <span class="text-xs font-bold text-indigo-600">원</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-2 italic tracking-tight">무료배송 / 사과·배·샤인머스캣</p>
-                    </div>
-                </div>
-                <!-- 상품 -->
-                <div class="bg-white rounded-3xl shadow-sm overflow-hidden product-card border border-slate-100">
-                    <div class="h-48 bg-slate-100 flex flex-col items-center justify-center text-slate-400 font-bold p-4 text-center">
-                        <span class="text-3xl mb-2">🍊</span>
-                        [알찬 세트]
-                    </div>
-                    <div class="p-5">
-                        <span class="text-[10px] font-bold bg-orange-100 text-orange-600 px-2 py-1 rounded-full uppercase italic">추천</span>
-                        <h3 class="font-bold text-slate-800 mt-3 h-10 overflow-hidden text-sm">알찬 세트 (한라봉/레드향/샤인)</h3>
-                        <div class="flex items-baseline gap-1 mt-2">
-                            <p class="text-indigo-600 font-black text-xl">66,500</p>
-                            <span class="text-xs font-bold text-indigo-600">원</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-2 italic tracking-tight">무료배송 / 만감류 및 샤인 구성</p>
-                    </div>
-                </div>
+            <div class="flex gap-2">
+                <span class="text-[10px] bg-white/20 px-3 py-1.5 rounded-full font-bold">오전 09:30 발주마감</span>
+                <span class="text-[10px] bg-white/20 px-3 py-1.5 rounded-full font-bold">전국 익일배송</span>
             </div>
         </div>
 
-        <!-- 2. 신선 수산 (모티스템) -->
-        <div class="mb-12 border-t border-slate-200 pt-10">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                    <span class="text-2xl">🌊</span> 수산 및 신선 식품 (모티스템)
-                </h2>
-                <span class="text-[10px] font-bold text-blue-500 border border-blue-200 bg-blue-50 px-2 py-1 rounded italic uppercase">Sea Food</span>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white rounded-3xl shadow-sm overflow-hidden product-card border border-slate-100">
-                    <div class="h-48 bg-slate-100 flex flex-col items-center justify-center text-slate-400 font-bold p-4 text-center">
-                        <span class="text-3xl mb-2">🐚</span>
-                        [완도 전복 세트]
-                    </div>
-                    <div class="p-5">
-                        <h3 class="font-bold text-slate-800">완도 최고급 전복 6-7미 (1kg)</h3>
-                        <div class="flex items-baseline gap-1 mt-2">
-                            <p class="text-indigo-600 font-black text-xl">38,400</p>
-                            <span class="text-xs font-bold text-indigo-600">원</span>
-                        </div>
-                        <p class="text-[10px] text-red-500 mt-2 font-bold tracking-tight">* 배송비 3,000원 별도</p>
-                    </div>
-                </div>
-            </div>
+        <!-- 상품 카운트 및 로딩 표시 -->
+        <div id="statusInfo" class="mb-6 flex items-center justify-between text-xs font-bold text-slate-500 px-2">
+            <span id="productCount">데이터 로딩 중...</span>
         </div>
 
-        <!-- 3. 제철 과일 (그린컴퍼니) -->
-        <div class="mb-12 border-t border-slate-200 pt-10">
-            <div class="flex items-center justify-between mb-6">
-                <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                    <span class="text-2xl">🍒</span> 제철 수입/국내 과일 (그린컴퍼니)
-                </h2>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white rounded-3xl shadow-sm overflow-hidden product-card border border-slate-100">
-                    <div class="h-48 bg-slate-100 flex flex-col items-center justify-center text-slate-400 font-bold p-4 text-center">
-                        <span class="text-3xl mb-2">🍒</span>
-                        [칠레산 체리]
-                    </div>
-                    <div class="p-5">
-                        <span class="text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-full uppercase italic">Import</span>
-                        <h3 class="font-bold text-slate-800 mt-3 h-10 overflow-hidden">칠레산 체리 10R 1kg</h3>
-                        <div class="flex items-baseline gap-1 mt-2">
-                            <p class="text-indigo-600 font-black text-xl">16,200</p>
-                            <span class="text-xs font-bold text-indigo-600">원</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-2 italic tracking-tight">무료배송 / 항공직송 신선배송</p>
-                    </div>
-                </div>
-                <div class="bg-white rounded-3xl shadow-sm overflow-hidden product-card border border-slate-100">
-                    <div class="h-48 bg-slate-100 flex flex-col items-center justify-center text-slate-400 font-bold p-4 text-center">
-                        <span class="text-3xl mb-2">🍓</span>
-                        [지리산 딸기]
-                    </div>
-                    <div class="p-5">
-                        <span class="text-[10px] font-bold bg-emerald-50 text-emerald-600 px-2 py-1 rounded-full uppercase italic">Local</span>
-                        <h3 class="font-bold text-slate-800 mt-3 h-10 overflow-hidden">GAP 지리산 딸기 특 (900g)</h3>
-                        <div class="flex items-baseline gap-1 mt-2">
-                            <p class="text-indigo-600 font-black text-xl">23,900</p>
-                            <span class="text-xs font-bold text-indigo-600">원</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-2 italic tracking-tight">무료배송 / 산지 당일 수확</p>
-                    </div>
-                </div>
-            </div>
+        <!-- 상품 그리드 -->
+        <div id="productGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            <!-- 로딩 스켈레톤 -->
+            <div class="skeleton h-64 rounded-3xl"></div>
+            <div class="skeleton h-64 rounded-3xl"></div>
+            <div class="skeleton h-64 rounded-3xl"></div>
+            <div class="skeleton h-64 rounded-3xl"></div>
+            <div class="skeleton h-64 rounded-3xl"></div>
         </div>
     </main>
 
-    <footer class="bg-slate-900 text-slate-500 py-12 px-4 text-center border-t border-slate-800">
-        <p class="text-sm font-black text-white italic tracking-tighter uppercase mb-4">Fresh Direct Partners</p>
-        <p class="text-[10px] leading-loose max-w-sm mx-auto">
-            본 서비스는 사업자 전용 상품 관리 시스템입니다.<br>
-            모든 단가는 마진 20%가 적용된 거래처 공급가입니다.
-        </p>
-    </footer>
+    <script>
+        // 구글 스프레드시트 JSON 변환 URL (공개 상태여야 함)
+        const SPREADSHEET_ID = '1W94T7cHWt2ZDsXYmWLixcEDE3qxGGD0-GFg1j9dA1II';
+        const GID = '0';
+        const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${GID}`;
+
+        let allProducts = [];
+        let currentFilter = '전체';
+
+        // 1. 데이터 가져오기 (CSV 파싱)
+        async function fetchProducts() {
+            try {
+                const response = await fetch(CSV_URL);
+                const data = await response.text();
+                
+                // 간단한 CSV 파서 (줄바꿈과 콤마 기준)
+                const rows = data.split('\n').slice(1); // 헤더 제외
+                
+                allProducts = rows.map(row => {
+                    const cols = row.split(',');
+                    // 스프레드시트 열 순서에 맞춰 매핑 (순번, 상품, 디자인파일, 품명, 공급가 등)
+                    // 현재 시트 구조에 최적화: 4번째 열(품명), 5번째 열(공급가) 등
+                    const name = cols[3]?.replace(/"/g, '') || cols[1]?.replace(/"/g, '') || "상품명 정보 없음";
+                    const price = cols[4] ? parseInt(cols[4].replace(/[^0-9]/g, '')).toLocaleString() : "별도문의";
+                    const desc = cols[10]?.replace(/"/g, '') || "";
+                    const category = inferCategory(name, desc);
+                    
+                    return { name, price, desc, category, raw: row };
+                }).filter(p => p.name !== "상품명 정보 없음" && p.name.length > 2);
+
+                renderProducts(allProducts);
+                document.getElementById('productCount').innerText = `총 ${allProducts.length}개의 상품이 등록되어 있습니다.`;
+            } catch (error) {
+                console.error("데이터 로드 실패:", error);
+                document.getElementById('productGrid').innerHTML = '<p class="col-span-full text-center py-20 text-slate-400 font-bold">데이터를 불러오지 못했습니다. 스프레드시트의 공유 설정을 확인해주세요.</p>';
+            }
+        }
+
+        // 카테고리 추론 로직
+        function inferCategory(name, desc) {
+            if (name.includes('세트') || name.includes('선물')) return '선물세트';
+            if (name.includes('전복') || name.includes('굴비') || name.includes('연어') || name.includes('갈치')) return '수산';
+            if (name.includes('사과') || name.includes('배') || name.includes('망고') || name.includes('딸기') || name.includes('체리')) return '과일';
+            return '기타';
+        }
+
+        // 2. 상품 렌더링
+        function renderProducts(products) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = products.map(p => `
+                <div class="bg-white rounded-3xl p-4 border border-slate-100 product-item flex flex-col justify-between">
+                    <div>
+                        <div class="aspect-square bg-slate-50 rounded-2xl mb-4 flex items-center justify-center text-3xl opacity-40">
+                            ${getEmoji(p.category)}
+                        </div>
+                        <span class="text-[9px] font-black px-2 py-1 rounded-full bg-slate-100 text-slate-400 uppercase tracking-tighter italic">${p.category}</span>
+                        <h3 class="mt-2 font-bold text-slate-800 text-sm leading-tight h-10 overflow-hidden line-clamp-2">${p.name}</h3>
+                    </div>
+                    <div class="mt-4 flex items-baseline gap-1">
+                        <span class="text-indigo-600 font-black text-lg">${p.price}</span>
+                        <span class="text-[10px] font-bold text-indigo-600">원</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getEmoji(cat) {
+            const map = { '선물세트': '🎁', '수산': '🌊', '과일': '🍎', '기타': '📦' };
+            return map[cat] || '✨';
+        }
+
+        // 3. 필터 및 검색 기능
+        function filterCategory(cat) {
+            currentFilter = cat;
+            
+            // 버튼 스타일 변경
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                btn.classList.add('text-slate-400');
+                if (btn.innerText.includes(cat)) {
+                    btn.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                    btn.classList.remove('text-slate-400');
+                }
+            });
+
+            applyFilter();
+        }
+
+        function applyFilter() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = allProducts.filter(p => {
+                const matchesCat = (currentFilter === '전체' || p.category === currentFilter);
+                const matchesSearch = p.name.toLowerCase().includes(searchTerm);
+                return matchesCat && matchesSearch;
+            });
+
+            renderProducts(filtered);
+            document.getElementById('productCount').innerText = `${filtered.length}개의 상품이 검색되었습니다.`;
+        }
+
+        // 검색창 이벤트
+        document.getElementById('searchInput').addEventListener('input', applyFilter);
+
+        // 초기 실행
+        window.onload = fetchProducts;
+    </script>
 </body>
 </html>
